@@ -46,7 +46,7 @@ def process_block_image(b_img,color):
         if 50 < cv2.contourArea(cnt) < 85:
             rect = cv2.minAreaRect(cnt)
             (object_w,object_h) = (max(rect[1]),min(rect[1]))
-            if 12 < object_w < 16 and 5 < object_h < 8 and 50 < object_w*object_h < 85:
+            if 12 < object_w < 16 and 5 < object_h < 8:# and 50 < object_w*object_h < 85:
                 print object_w, object_h, object_w/object_h
                 box = np.int0(cv2.boxPoints(rect))
                 cv2.drawContours(b_img,[box],0,color,3)
@@ -105,7 +105,7 @@ def process_whole_image(file_path):
                     if save_images:
                         if not os.path.isdir(base_file):
                             os.mkdir(base_file)
-                        plt.savefig(base_file+'/'+str(block_count)+'.png', bbox_inches='tight', dpi = 200)
+                        plt.savefig(posixpath.join(base_file,str(block_count)+'.png'), bbox_inches='tight', dpi = 200)
                     
                 except tk.TclError:
                     break
