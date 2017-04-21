@@ -4,6 +4,7 @@ Created on Mon Apr 03 15:04:43 2017
 
 @author: ukalwa
 """
+import os
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,12 +16,16 @@ import tkFileDialog as filedialog
 img_list = [] # Images are split into blocks and saved as list of arrays
 counter = 0 # Total Egg count initialization to 0
 block_count = 0 # To store current block
+create_plots = True
 show_plots = False # Set it to True to check the plots
-    
+save_images = True
+if not show_plots:
+    plt.ioff() 
     
 root = tk.Tk()
 root.withdraw()
 file_path = filedialog.askopenfilename(initialdir='../../Images/Scanner Images/')
+base_file = os.path.splitext(file_path)[0]
 
 def process_block_image(b_img,color):
     count = 0
@@ -42,7 +47,7 @@ def process_block_image(b_img,color):
         if 50 < cv2.contourArea(cnt) < 85:
             rect = cv2.minAreaRect(cnt)
             (object_w,object_h) = (max(rect[1]),min(rect[1]))
-            if 11 < object_w < 16 and 5 < object_h < 8:
+            if 12 < object_w < 16 and 5 < object_h < 8 and 50 < object_w*object_h < 85:
                 print object_w, object_h, object_w/object_h
                 box = np.int0(cv2.boxPoints(rect))
                 cv2.drawContours(b_img,[box],0,color,3)
@@ -75,25 +80,31 @@ if len(file_path) != 0:
         b_img = block_image.copy()
         processed_image,count = process_block_image(b_img,(0,0,0))
         counter += count
-        print "Image Block %s Egg count %s" %(block_count,count)
         block_count +=  1
+        print "Image Block %s Egg count %s" %(block_count,count)
         
-        if show_plots:
-            plt.subplot(1, 2, 1)
-            plt.imshow(block_image)
-            plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+        if create_plots:
+            fig = plt.figure(figsize=(8.0, 5.0))
+            fig.add_subplot(121).imshow(block_image)
+            fig.add_subplot(121).set_title('Original Image'), plt.xticks([]), plt.yticks([])
             
-            plt.subplot(1, 2, 2)
-            plt.imshow(processed_image)
-            plt.title('Processed Image'), plt.xticks([]), plt.yticks([])
+            fig.add_subplot(122).imshow(processed_image)
+            fig.add_subplot(122).set_title('Processed Image'), plt.xticks([]), plt.yticks([])
             
-            plt.show()
+            
             try:
-                plt.waitforbuttonpress(timeout=-1)
+                if show_plots:
+                    plt.show()
+                    plt.waitforbuttonpress(timeout=-1)
+                if save_images:
+                    if not os.path.exists(base_file):
+                        os.mkdir(base_file)
+                    plt.savefig(base_file+'/'+str(block_count)+'.png', bbox_inches='tight', dpi = 200)
+                
             except tk.TclError:
                 break
                 print "Program exited"
-        
+            plt.close(fig)
     print "Total Eggs counted %s in %s seconds" %(counter,(time.time()-start_time))
 #cv2.imshow("Processed Image", )
 #cv2.waitKey(10000)

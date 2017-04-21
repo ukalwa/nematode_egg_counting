@@ -23,7 +23,7 @@ Steps involved
 --------------
 The code performs these following steps:
 
-1. Read high resolution scanner image and split into 1024*1024*3 block and store them as a list of numpy arrays
+1. Read high resolution scanner image and split into 1024*1024*3 blocks and store them as a list of numpy arrays
 2. It loops though each block and detects any eggs in that block and prints the count
 3. Total egg count is printed along with the time taken for the script at the end 
 
