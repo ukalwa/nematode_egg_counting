@@ -7,9 +7,8 @@ Created on Tue Apr 25 15:06:59 2017
 import cv2
 import numpy as np
 
-def process_block_image(b_img,color):
+def process_block_image(b_img,color, obj_parameters_list):
     count = 0
-    obj_parameters_list = []
     hsv_low=np.array([140,170,125],dtype=np.float32)/255
     hsv_high=np.array([165,255,215],dtype=np.float32)/255
 #    b_img = cv2.medianBlur(b_img,5)
@@ -28,13 +27,16 @@ def process_block_image(b_img,color):
         cnt = contours[k]
         if 50 < cv2.contourArea(cnt) < 100:
             rect = cv2.minAreaRect(cnt)
-            (object_w,object_h) = (max(rect[1]),min(rect[1]))
-            print object_w, object_h, object_w/object_h
-            obj_parameters_list.append("%s, %s, %s" %(object_w, object_h, 
-                                                       object_w/object_h))
-            box = np.int0(cv2.boxPoints(rect))
-            cv2.drawContours(b_img,[box],0,color,2)
-            count += 1
+            (object_w,object_h) = (round(max(rect[1]),2),
+                                     round(min(rect[1]),2))
+            
+            if 1.81 < round(object_w/object_h,2) < 3.5 and object_w < 22:
+                print object_w, object_h, round(object_w/object_h,2)
+                obj_parameters_list.append("%s, %s, %s" %(object_w, object_h, 
+                                            round(object_w/object_h,2)))
+                box = np.int0(cv2.boxPoints(rect))
+                cv2.drawContours(b_img,[box],0,color,2)
+                count += 1
         else:
             continue
-    return b_img, count, obj_parameters_list
+    return b_img, count

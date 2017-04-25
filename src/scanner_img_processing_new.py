@@ -37,7 +37,7 @@ if process_dir:
     if len(dir_path) != 0:
         for name in os.listdir(dir_path):
             if not os.path.isdir(name) and name.endswith('.tif') \
-                and 'CL' not in name:
+                and 'new_method_10_per' in name:
                 file_path = posixpath.join(dir_path,name)
                 print file_path
                 process_whole_image(file_path=file_path, 
@@ -45,6 +45,8 @@ if process_dir:
                                     save_images=save_images, 
                                     show_plots=show_plots, 
                                     color=(255,255,0))
+    else:
+        print "Invalid directory"
 else:
     file_path = filedialog.askopenfilename(
                     initialdir='../../Images/Scanner Images/')

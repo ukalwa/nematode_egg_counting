@@ -48,15 +48,13 @@ def process_whole_image(file_path, create_plots, save_images,
         
         for block_image in img_list:
             b_img = block_image.copy()
-            processed_image, count, obj_parameters_list = \
-                                            process_block_image(b_img,color)
+            processed_image, count = process_block_image(b_img, 
+                                                         color, count_list)
             counter += count
             block_count +=  1
             print "Image Block %s Egg count %s" %(block_count,count)
             count_list.append("Image Block %s Egg count %s" \
                               %(block_count,count))
-            if len(obj_parameters_list) != 0:
-                count_list.append(obj_parameters_list)
             
             if create_plots:
                 fig = plt.figure(figsize=(8.0, 5.0))
@@ -65,7 +63,7 @@ def process_whole_image(file_path, create_plots, save_images,
                 plt.xticks([]), plt.yticks([])
                 
                 fig.add_subplot(122).imshow(processed_image)
-                fig.add_subplot(122).set_title('Processed Image'), 
+                fig.add_subplot(122).set_title('Egg count %s' %(count)), 
                 plt.xticks([]), plt.yticks([])
                 
                 if save_images:
