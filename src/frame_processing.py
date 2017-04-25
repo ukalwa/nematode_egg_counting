@@ -8,8 +8,15 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
+import Tkinter as tk
+import tkFileDialog as filedialog
+import os
 
-img = cv2.imread(r'Z:\EggCountingOpenCV\Images\Scanner Images\filter_paper_cat_41_test_4800_no_backlight.tif')
+root = tk.Tk()
+root.withdraw()
+file_path = filedialog.askopenfilename(initialdir='../../Images/Scanner Images/')
+base_file = os.path.splitext(file_path)[0]
+img = cv2.imread(file_path)
 shape = np.array(img.shape,dtype=float)[:-1]
 w,h = np.int16(np.ceil(shape/1024))
 
@@ -104,25 +111,25 @@ cv2.destroyAllWindows()
 
 
 #%%
-
+#b_img = img_list[45].copy()
 def process_block_image(b_img,color):
     count = 0
-    b_img = cv2.medianBlur(b_img,5)
+#    b_img = cv2.medianBlur(b_img,5)
     b_img_hsv = np.float32(cv2.cvtColor(b_img,cv2.COLOR_BGR2HSV))
     b_img_hsv = b_img_hsv/np.max(b_img_hsv)
     BW = np.uint8(cv2.split(b_img_hsv)[1] > 0.5)
     b_image = cv2.bitwise_and(b_img,b_img,mask=BW)
     b_image_hsv = cv2.bitwise_and(b_img_hsv,b_img_hsv,mask=BW)
-    HSVLOW=np.array([100,0,125],dtype=np.float32)/255
-    HSVHIGH=np.array([160,255,200],dtype=np.float32)/255
+    hsv_low=np.array([140,170,125],dtype=np.float32)/255
+    hsv_high=np.array([165,255,215],dtype=np.float32)/255
 
     #apply the range on a mask
-    mask = cv2.inRange(b_image_hsv,HSVLOW, HSVHIGH)
+    mask = cv2.inRange(b_image_hsv,hsv_low, hsv_high)
     im2, contours, hierarchy = cv2.findContours(mask,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
 #    area = [cv2.contourArea(cnt) for cnt in contours]
     for k in np.arange(len(contours)):
         cnt = contours[k]
-        if 50 < cv2.contourArea(cnt) < 85:
+        if 50 < cv2.contourArea(cnt) < 100:
             rect = cv2.minAreaRect(cnt)
             (object_w,object_h) = (max(rect[1]),min(rect[1]))
             print object_w, object_h, object_w/object_h
@@ -133,7 +140,7 @@ def process_block_image(b_img,color):
             continue
     return b_img, count
         
-
+#%%
 
 counter = 0
 block_count = 0
@@ -163,6 +170,39 @@ print counter
 #cv2.destroyAllWindows()
         
     
+#%%
+block_count = 0
+show_plots = True
+b_img = img_list[296].copy()
+processed_image,count = process_block_image(b_img,(0,255,0))
+print "Image Block %s Egg count %s" %(block_count,count)
+#plt.ioff()
+
+if show_plots:
+    fig = plt.figure(figsize=(8.0, 5.0))
+    fig.add_subplot(121).imshow(b_img)
+    fig.add_subplot(121).set_title('Original Image'), plt.xticks([]), plt.yticks([])
+#    plt.subplot(1, 2, 1)
+#    plt.imshow(img_list[296].copy())
+#    plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+    
+#    plt.subplot(1, 2, 2)
+#    plt.imshow(processed_image)
+#    plt.title('Processed Image'), plt.xticks([]), plt.yticks([])
+    fig.add_subplot(122).imshow(processed_image)
+    fig.add_subplot(122).set_title('Processed Image'), plt.xticks([]), plt.yticks([])
+    
+    fig.show()
+    try:
+        fig.waitforbuttonpress(timeout=-1)
+        base_file = os.path.splitext(file_path)[0]
+        fig.savefig(base_file+'1'+'.png', bbox_inches='tight', dpi=200)
+    except tk.TclError:
+        print "Program exited"
+
+
+
+
     
     
 
