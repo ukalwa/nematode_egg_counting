@@ -30,7 +30,8 @@ def process_block_image(b_img,color):
             rect = cv2.minAreaRect(cnt)
             (object_w,object_h) = (max(rect[1]),min(rect[1]))
             print object_w, object_h, object_w/object_h
-            obj_parameters_list.append(object_w, object_h, object_w/object_h)
+            obj_parameters_list.append("%s, %s, %s" %(object_w, object_h, 
+                                                       object_w/object_h))
             box = np.int0(cv2.boxPoints(rect))
             cv2.drawContours(b_img,[box],0,color,2)
             count += 1
