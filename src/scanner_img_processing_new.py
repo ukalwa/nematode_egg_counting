@@ -111,7 +111,7 @@ def process_whole_image(file_path):
                     break
                     print "Program exited"
                 plt.close(fig)
-        with open(base_file+'/'+"count.txt", "w") as f:
+        with open(posixpath.join(base_file,"count.txt"), "w") as f:
             for s in count_list:
                 f.write(str(s) +"\n")
         print "Total Eggs counted %s in %s seconds" %(counter,(time.time()-start_time))
@@ -130,7 +130,7 @@ if isDir:
     dir_path = filedialog.askdirectory(initialdir='../../Images/')
     if len(dir_path) != 0:
         for name in os.listdir(dir_path):
-            if not os.path.isdir(name) and name.endswith('.tif') and 'test_coontrol' in name:
+            if not os.path.isdir(name) and name.endswith('.tif') and 'CL' not in name:
                 file_path = posixpath.join(dir_path,name)
                 print file_path
                 process_whole_image(file_path=file_path)
