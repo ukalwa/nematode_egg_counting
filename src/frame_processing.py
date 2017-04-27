@@ -4,36 +4,118 @@ Created on Mon Apr 03 15:04:43 2017
 
 @author: ukalwa
 """
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
-plt.style.use('ggplot')
 import Tkinter as tk
 import tkFileDialog as filedialog
 import os
+
+from split_image_into_blocks import split_image_into_blocks
 
 root = tk.Tk()
 root.withdraw()
 file_path = filedialog.askopenfilename(initialdir='../../Images/Scanner Images/')
 base_file = os.path.splitext(file_path)[0]
-img = cv2.imread(file_path)
-shape = np.array(img.shape,dtype=float)[:-1]
-w,h = np.int16(np.ceil(shape/1024))
+
 
 img_list = []
-for i in np.arange(w):
-    for j in np.arange(h):
-#        print i,j, i*1024, shape[0], j*1024, shape[1]
-        if i*1024 < shape[0] and j*1024 < shape[1]:
-            img_list.append(img[i*1024:(i+1)*1024,j*1024:(j+1)*1024,:])
-        elif i*1024 < shape[0] and not j*1024 < shape[1]:
-            img_list.append(img[i*1024:(i+1)*1024,j*1024:,:])
-        elif not i*1024 < shape[0] and j*1024 < shape[1]:
-            img_list.append(img[i*1024:,j*1024:(j+1)*1024,:])
-        else:
-            img_list.append(img[i*1024:,j*1024:,:])
+block_size = (1024,1024)
+status = split_image_into_blocks(file_path, img_list, block_size)
+if len(status) != 0:
+        print status
 
 #%%
+import cv2
+import numpy as np
+
+b_img = img_list[282].copy()
+color = (0,255,255)
+count = 0
+hsv_low=np.array([140,135,100],dtype=np.float32)/255
+hsv_high=np.array([165,255,215],dtype=np.float32)/255
+base_mean = (0.53, 0.07, 0.88)
+#    b_img = cv2.medianBlur(b_img,5)
+b_img_hsv = np.float32(cv2.cvtColor(b_img,cv2.COLOR_BGR2HSV))
+b_img_hsv = b_img_hsv/np.max(b_img_hsv)
+BW = np.uint8(cv2.split(b_img_hsv)[1] > 0.5)
+#    b_image = cv2.bitwise_and(b_img,b_img,mask=BW)
+b_image_hsv = cv2.bitwise_and(b_img_hsv,b_img_hsv,mask=BW)
+
+mean = np.round(np.array(cv2.mean(b_img_hsv))[:-1],3)
+tolerance_factor = (0.05, 1.5, 7)
+tolerance = np.array((1+tolerance_factor*(mean-base_mean)/base_mean),
+                     dtype=np.float32)
+#if tolerance[2] < 1:
+#    hsv_low = hsv_low*tolerance
+#    hsv_high[2] = hsv_high[2]*tolerance[2] 
+#    hsv_high[2] = 1 if hsv_high[2]*tolerance[2] > 1 else hsv_high[2]
+##elif 1 < tolerance[2] < 1.03:
+##    tolerance[2] = tolerance[2] - 2*(tolerance[2]-1)
+##    hsv_low = hsv_low*tolerance
+##    hsv_high[2] = hsv_high[2]*(tolerance[2] - 0.05)
+##    hsv_high[2] = 1 if hsv_high[2]*tolerance[2] > 1 else hsv_high[2]
+#else:
+hsv_low[1] = hsv_low[1]*tolerance[1]
+#apply the hsv range on a mask
+mask = cv2.inRange(b_image_hsv,hsv_low, hsv_high)
+im2, contours, hierarchy = cv2.findContours(mask,cv2.RETR_TREE,
+                                            cv2.CHAIN_APPROX_NONE)
+area = [cv2.contourArea(cnt) for cnt in contours]
+for k in np.arange(len(contours)):
+    cnt = contours[k]
+    if 40 <= cv2.contourArea(cnt) <= 135:
+        rect = cv2.minAreaRect(cnt)
+        (object_w,object_h) = (round(max(rect[1]),2),
+                                 round(min(rect[1]),2))
+#        print k, object_w, object_h, round(object_w/object_h,2)
+        if 1.78 <= round(object_w/object_h,2) <= 3.3 and 12 < object_w < 22:
+            print object_w, object_h, round(object_w/object_h,2)
+#            obj_parameters_list.append("%s, %s, %s" %(object_w, object_h, 
+#                                        round(object_w/object_h,2)))
+#            box = np.int0(cv2.boxPoints(rect))
+#            cv2.drawContours(b_img,[box],0,color,2)
+            count += 1
+    else:
+        continue
+    
+#%%
+import matplotlib.pyplot as plt
+plt.style.use('dark_background')
+
+from process_block_image import process_block_image
+
+color = (0,255,255)
+count_list = []
+show_plots = True
+b_img = img_list[45].copy()
+processed_image, count = process_block_image(b_img, color, count_list)
+print "Egg count %s" %(count)
+#plt.ioff()
+
+if show_plots:
+    fig = plt.figure(figsize=(8.0, 5.0))
+    fig.add_subplot(121).imshow(b_img)
+    fig.add_subplot(121).set_title('Original Image'), plt.xticks([]), plt.yticks([])
+#    plt.subplot(1, 2, 1)
+#    plt.imshow(img_list[296].copy())
+#    plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+    
+#    plt.subplot(1, 2, 2)
+#    plt.imshow(processed_image)
+#    plt.title('Processed Image'), plt.xticks([]), plt.yticks([])
+    fig.add_subplot(122).imshow(processed_image)
+    fig.add_subplot(122).set_title('Egg count %s' %count), plt.xticks([]), plt.yticks([])
+    
+    fig.show()
+    try:
+        fig.waitforbuttonpress(timeout=-1)
+        base_file = os.path.splitext(file_path)[0]
+#        fig.savefig(base_file+'1'+'.png', bbox_inches='tight', dpi=200)
+    except tk.TclError:
+        print "Program exited"
+
+
+#%%
+import cv2
+import numpy as np
 
 counter = 0
 temp_img = np.copy(img_list[57])
@@ -49,7 +131,7 @@ lab_high = np.array([255,255,100])
 mask = cv2.inRange(hsv_image,hsv_low, hsv_high)
 res = cv2.bitwise_and(temp_img,temp_img, mask =mask)
 im2, contours, hierarchy = cv2.findContours(mask,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
-area = np.array([cv2.contourArea(cnt) for cnt in contours])
+#area = np.array([cv2.contourArea(cnt) for cnt in contours])
 contours = np.array(contours)[np.logical_and(area>35, area<90)].tolist()
 temp_mask = np.zeros(hsv_image.shape[:-1],np.uint8)
 #cv2.namedWindow('Processed Image',cv2.WINDOW_NORMAL)
@@ -102,45 +184,18 @@ hsv_image = cv2.cvtColor(temp_img,cv2.COLOR_BGR2HSV)
 mouse_events = m.Mouse_Events()
 cv2.namedWindow("Image")
 cv2.setMouseCallback("Image",mouse_events.mouse_click)
-cv2.imshow("Image",b_img)
+#cv2.imshow("Image",b_img)
 #print hsv_image[:,:,1][mouse_events.point]
-cv2.imshow("Threshold Image",)
+cv2.imshow("Original Image",temp_img)
 cv2.waitKey(10000)
 cv2.destroyAllWindows()
 
 
 
 #%%
-#b_img = img_list[45].copy()
-def process_block_image(b_img,color):
-    count = 0
-#    b_img = cv2.medianBlur(b_img,5)
-    b_img_hsv = np.float32(cv2.cvtColor(b_img,cv2.COLOR_BGR2HSV))
-    b_img_hsv = b_img_hsv/np.max(b_img_hsv)
-    BW = np.uint8(cv2.split(b_img_hsv)[1] > 0.5)
-    b_image = cv2.bitwise_and(b_img,b_img,mask=BW)
-    b_image_hsv = cv2.bitwise_and(b_img_hsv,b_img_hsv,mask=BW)
-    hsv_low=np.array([140,170,125],dtype=np.float32)/255
-    hsv_high=np.array([165,255,215],dtype=np.float32)/255
-
-    #apply the range on a mask
-    mask = cv2.inRange(b_image_hsv,hsv_low, hsv_high)
-    im2, contours, hierarchy = cv2.findContours(mask,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
-#    area = [cv2.contourArea(cnt) for cnt in contours]
-    for k in np.arange(len(contours)):
-        cnt = contours[k]
-        if 50 < cv2.contourArea(cnt) < 100:
-            rect = cv2.minAreaRect(cnt)
-            (object_w,object_h) = (max(rect[1]),min(rect[1]))
-            print object_w, object_h, object_w/object_h
-            box = np.int0(cv2.boxPoints(rect))
-            cv2.drawContours(b_img,[box],0,color,2)
-            count += 1
-        else:
-            continue
-    return b_img, count
-        
-#%%
+import matplotlib.pyplot as plt
+plt.style.use('ggplot')
+from process_block_image import process_block_image
 
 counter = 0
 block_count = 0
@@ -169,37 +224,6 @@ print counter
 #cv2.waitKey(10000)
 #cv2.destroyAllWindows()
         
-    
-#%%
-block_count = 0
-show_plots = True
-b_img = img_list[296].copy()
-processed_image,count = process_block_image(b_img,(0,255,0))
-print "Image Block %s Egg count %s" %(block_count,count)
-#plt.ioff()
-
-if show_plots:
-    fig = plt.figure(figsize=(8.0, 5.0))
-    fig.add_subplot(121).imshow(b_img)
-    fig.add_subplot(121).set_title('Original Image'), plt.xticks([]), plt.yticks([])
-#    plt.subplot(1, 2, 1)
-#    plt.imshow(img_list[296].copy())
-#    plt.title('Original Image'), plt.xticks([]), plt.yticks([])
-    
-#    plt.subplot(1, 2, 2)
-#    plt.imshow(processed_image)
-#    plt.title('Processed Image'), plt.xticks([]), plt.yticks([])
-    fig.add_subplot(122).imshow(processed_image)
-    fig.add_subplot(122).set_title('Processed Image'), plt.xticks([]), plt.yticks([])
-    
-    fig.show()
-    try:
-        fig.waitforbuttonpress(timeout=-1)
-        base_file = os.path.splitext(file_path)[0]
-        fig.savefig(base_file+'1'+'.png', bbox_inches='tight', dpi=200)
-    except tk.TclError:
-        print "Program exited"
-
 
 
 

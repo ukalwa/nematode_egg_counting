@@ -37,7 +37,7 @@ if process_dir:
     if len(dir_path) != 0:
         for name in os.listdir(dir_path):
             if not os.path.isdir(name) and name.endswith('.tif') \
-                and 'new_method_10_per' in name:
+                and 'new_method' in name:
                 file_path = posixpath.join(dir_path,name)
                 print file_path
                 process_whole_image(file_path=file_path, 
