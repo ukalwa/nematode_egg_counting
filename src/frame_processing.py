@@ -26,18 +26,18 @@ base_file = os.path.splitext(file_path)[0]
 
 img_list = []
 block_size = (1024, 1024)
-status = split_image_into_blocks(file_path, img_list, block_size)
+status, base_mean = split_image_into_blocks(file_path, img_list, block_size)
 if len(status) != 0:
     print status
 
 # %%
 
-b_img = img_list[60].copy()
+b_img = img_list[113].copy()
 color = (0, 255, 255)
 count = 0
-hsv_low = np.array([140, 135, 100], dtype=np.float32) / 255
-hsv_high = np.array([165, 255, 215], dtype=np.float32) / 255
-base_mean = (0.53, 0.07, 0.88)
+hsv_low = np.array([140, 135, 155], dtype=np.float32) / 255
+hsv_high = np.array([165, 255, 225], dtype=np.float32) / 255
+#base_mean = (0.53, 0.07, 0.88)
 #    b_img = cv2.medianBlur(b_img,5)
 b_img_hsv = np.float32(cv2.cvtColor(b_img, cv2.COLOR_BGR2HSV))
 b_img_hsv = b_img_hsv / np.max(b_img_hsv)
@@ -59,7 +59,7 @@ tolerance = np.array((1 + tolerance_factor * (mean - base_mean) / base_mean),
 #    hsv_high[2] = hsv_high[2]*(tolerance[2] - 0.05)
 #    hsv_high[2] = 1 if hsv_high[2]*tolerance[2] > 1 else hsv_high[2]
 # else:
-hsv_low[1] = hsv_low[1] * tolerance[1]
+#hsv_low[1] = hsv_low[1] * tolerance[1]
 # apply the hsv range on a mask
 mask = cv2.inRange(b_image_hsv, hsv_low, hsv_high)
 _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE,
@@ -69,11 +69,11 @@ for k in np.arange(len(contours)):
     cnt = contours[k]
     if 40 <= cv2.contourArea(cnt) <= 135:
         #        rect = cv2.minAreaRect(cnt)
-        rect = cv2.fitEllipse(cnt)
+        rect = cv2.minAreaRect(cnt)
         (object_w, object_h) = (round(max(rect[1]), 2),
                                 round(min(rect[1]), 2))
         print k, object_w, object_h, round(object_w / object_h, 2)
-        if 1.78 <= round(object_w / object_h, 2) <= 3.3 and 12 < object_w < 22:
+        if 1.78 <= round(object_w / object_h, 2) <= 3.35 and 12 < object_w < 22:
             print object_w, object_h, round(object_w / object_h, 2)
             # obj_parameters_list.append("%s, %s, %s" %(object_w, object_h,
             #                            round(object_w/object_h,2)))

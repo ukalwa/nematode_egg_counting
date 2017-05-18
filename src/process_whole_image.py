@@ -29,16 +29,18 @@ def process_whole_image(file_path, create_plots, save_images,
     block_count = 0  # To store current block
     count_list = []
     base_file = os.path.splitext(file_path)[0]
-    status = split_image_into_blocks(file_path, img_list, block_size)
+    print "Splitting images into image blocks"
+    status, base_mean = split_image_into_blocks(file_path,
+                                                img_list, block_size)
 
     if len(status) != 0:
         print status
         return 1
-
+    print "Processing all image blocks"
     for block_image in img_list:
         b_img = block_image.copy()
-        result = process_block_image(b_img, color, count_list, obj=obj,
-                                     retr_objects=save_obj)
+        result = process_block_image(b_img, color, count_list, base_mean,
+                                     obj=obj, retr_objects=save_obj)
         count = result['count']
         processed_image = result['img']
         counter += count
@@ -70,8 +72,8 @@ def process_whole_image(file_path, create_plots, save_images,
                     plt.show()
                     plt.waitforbuttonpress(timeout=-1)
             except tk.TclError:
+                print "Program exited"
                 break
-            print "Program exited"
             plt.close(fig)
         block_count += 1
     end_time = time.time()

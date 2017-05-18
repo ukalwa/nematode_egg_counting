@@ -33,30 +33,36 @@ def process_log(file_name):
         print data
 
 
+def main():
+    if process_dir:
+        dir_path = filedialog.askdirectory(initialdir='../../Images/')
+        if len(dir_path) != 0:
+            for name in os.listdir(dir_path):
+                if not os.path.isdir(name) and name.endswith('.tif') \
+                        and '174_new_method_20_per_sample7_UK' in name:
+                    file_path = posixpath.join(dir_path, name)
+                    print "FILE: %s" % file_path
+                    img_list = process_whole_image(file_path=file_path,
+                                                   create_plots=create_plots,
+                                                   save_images=True,
+                                                   show_plots=False,
+                                                   color=(255, 255, 0),
+                                                   obj=obj, save_obj=False)
+        else:
+            print "Invalid directory"
+    else:
+        file_path = filedialog.askopenfilename(
+            initialdir='../../Images/Scanner Images/')
+        if len(file_path) != 0:
+            img_list = process_whole_image(file_path=file_path,
+                                           create_plots=create_plots,
+                                           save_images=True,
+                                           show_plots=False,
+                                           color=(255, 255, 0),
+                                           obj=obj, save_obj=False)
+        else:
+            print "Invalid file"
+
+
 # Main process starts here
-if process_dir:
-    dir_path = filedialog.askdirectory(initialdir='../../Images/')
-    if len(dir_path) != 0:
-        for name in os.listdir(dir_path):
-            if not os.path.isdir(name) and name.endswith('.tif') \
-                    and 'new_method' in name:
-                file_path = posixpath.join(dir_path, name)
-                print file_path
-                process_whole_image(file_path=file_path,
-                                    create_plots=create_plots,
-                                    save_images=True, show_plots=False,
-                                    color=(255, 255, 0),
-                                    obj=obj, save_obj=True)
-    else:
-        print "Invalid directory"
-else:
-    file_path = filedialog.askopenfilename(
-        initialdir='../../Images/Scanner Images/')
-    if len(file_path) != 0:
-        process_whole_image(file_path=file_path,
-                            create_plots=create_plots,
-                            save_images=True, show_plots=False,
-                            color=(255, 255, 0),
-                            obj=obj, save_obj=True)
-    else:
-        print "Invalid file"
+main()
