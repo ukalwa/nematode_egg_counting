@@ -16,7 +16,7 @@ def process_block_image(b_img, color, obj_parameters_list, base_mean,
         objects_detected = obj['detected']
         obj_mean = obj['mean']
     #    img_tol = (-2,-2,2,2)
-    hsv_low = np.array([140, 135, 155], dtype=np.float32) / 255
+    hsv_low = np.array([140, 80, 155], dtype=np.float32) / 255
     hsv_high = np.array([165, 255, 225], dtype=np.float32) / 255
     # base_mean = (0.53, 0.07, 0.88)
     #    b_img = cv2.medianBlur(b_img,5)

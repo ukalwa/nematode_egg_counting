@@ -71,7 +71,7 @@ def get_obj_color(frame):
 
     cv2.createTrackbar(hl, 'Processed', 140, 255, nothing)
     cv2.createTrackbar(hh, 'Processed', 165, 255, nothing)
-    cv2.createTrackbar(sl, 'Processed', 135, 255, nothing)
+    cv2.createTrackbar(sl, 'Processed', 80, 255, nothing)
     cv2.createTrackbar(sh, 'Processed', 255, 255, nothing)
     cv2.createTrackbar(vl, 'Processed', 125, 255, nothing)
     cv2.createTrackbar(vh, 'Processed', 215, 255, nothing)
@@ -144,7 +144,7 @@ def open_file():
     root = tk.Tk()
     root.withdraw()
     file_path = filedialog.askopenfilename(
-        initialdir='../../Images/Scanner Images/')
+        initialdir=r'Y:\EggCounting\Images\Scanner Images')
     if len(file_path) != 0:
         select_obj_frame(file_path)
 

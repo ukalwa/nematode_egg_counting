@@ -19,7 +19,7 @@ It was tested on Windows and Mac OS X.
 Usage
 =====
 
-Run `python src/scanner_img_processing.py`
+Run `python src/scanner_img_processing.py [-d <dir> -s <search string> or -f <file>]`
 
 Steps involved
 ==============
