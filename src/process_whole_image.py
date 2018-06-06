@@ -11,6 +11,7 @@ import Tkinter as tk
 import cv2
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from process_block_image import process_block_image
 from split_image_into_blocks import split_image_into_blocks
@@ -28,25 +29,34 @@ def process_whole_image(file_path, create_plots, save_images,
     counter = 0  # Total Egg count initialization to 0
     block_count = 0  # To store current block
     count_list = []
+    egg_list = []
     base_file = os.path.splitext(file_path)[0]
     print "Splitting images into image blocks"
     status, base_mean = split_image_into_blocks(file_path,
                                                 img_list, block_size)
+    if base_mean is None:
+        return
+    if base_mean[1] < 0.055:
+        print "Top or Interface detected"
+        count_list.append(["Top or Interface detected"])
+    else:
+        print "Pellet detected"
+        count_list.append(["Pellet detected"])
 
     if len(status) != 0:
         print status
         return 1
     print "Processing all image blocks"
+    count_list.append(["Image Block, Egg count"])
     for block_image in img_list:
         b_img = block_image.copy()
-        result = process_block_image(b_img, color, count_list, base_mean,
+        result = process_block_image(b_img, color, egg_list, base_mean,
                                      obj=obj, retr_objects=save_obj)
         count = result['count']
         processed_image = result['img']
         counter += count
         print "Image Block %s Egg count %s" % (block_count, count)
-        count_list.append("Image Block %s Egg count %s"
-                          % (block_count, count))
+        count_list.append("%s, %s" % (block_count, count))
 
         if create_plots:
             fig = plt.figure(figsize=(8.0, 5.0))
@@ -77,11 +87,11 @@ def process_whole_image(file_path, create_plots, save_images,
             plt.close(fig)
         block_count += 1
     end_time = time.time()
-    count_list.append("Total Eggs counted %s in %s seconds"
-                      % (counter, (end_time - start_time)))
-    with open(posixpath.join(base_file, "count.txt"), "w") as f:
+    count_list.append("Total Eggs counted %s, %s seconds"
+                      % (counter, round((end_time - start_time),2)))
+    with open(posixpath.join(base_file, "count.csv"), "w") as f:
         for s in count_list:
             f.write(str(s) + "\n")
     print "Total Eggs counted %s in %s seconds" \
           % (counter, (end_time - start_time))
-    return img_list
+    return {'img': img_list, 'counts': count_list, 'eggs':egg_list}

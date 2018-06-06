@@ -16,15 +16,22 @@ def process_block_image(b_img, color, obj_parameters_list, base_mean,
         objects_detected = obj['detected']
         obj_mean = obj['mean']
     #    img_tol = (-2,-2,2,2)
-    hsv_low = np.array([140, 80, 155], dtype=np.float32) / 255
-    hsv_high = np.array([165, 255, 225], dtype=np.float32) / 255
+    # To detect top and interface
+    if base_mean[1] < 0.055:
+        hsv_low = np.array([140, 65, 118], dtype=np.float32) / 255
+        hsv_high = np.array([165, 255, 255], dtype=np.float32) / 255
+        min_area = 35
+    else:
+        hsv_low = np.array([140, 80, 155], dtype=np.float32) / 255
+        hsv_high = np.array([165, 255, 255], dtype=np.float32) / 255
+        min_area = 35
     # base_mean = (0.53, 0.07, 0.88)
     #    b_img = cv2.medianBlur(b_img,5)
     b_img_hsv = np.float32(cv2.cvtColor(b_img, cv2.COLOR_BGR2HSV))
-    b_img_hsv = b_img_hsv / np.max(b_img_hsv)
-    b_w = np.uint8(cv2.split(b_img_hsv)[1] > 0.5)
+    b_image_hsv = b_img_hsv / np.max(b_img_hsv)
+    # b_w = np.uint8(cv2.split(b_img_hsv)[1] > 0.5)
     #    b_image = cv2.bitwise_and(b_img,b_img,mask=BW)
-    b_image_hsv = cv2.bitwise_and(b_img_hsv, b_img_hsv, mask=b_w)
+    # b_image_hsv = cv2.bitwise_and(b_img_hsv, b_img_hsv, mask=b_w)
 
     # mean = np.round(np.array(cv2.mean(b_img_hsv))[:-1], 3)
     # tolerance_factor = (0.05, 1.5, 7)
@@ -45,13 +52,13 @@ def process_block_image(b_img, color, obj_parameters_list, base_mean,
     #    area = [cv2.contourArea(cnt) for cnt in contours]
     for k in np.arange(len(contours)):
         cnt = contours[k]
-        if 35 <= cv2.contourArea(cnt) <= 135:
+        if min_area <= cv2.contourArea(cnt) <= 135:
             rect = cv2.minAreaRect(cnt)
             (object_w, object_h) = (round(max(rect[1]), 2),
                                     round(min(rect[1]), 2))
 
-            if 1.65 <= round(object_w / object_h, 2) <= 3.35 \
-                  and object_w < 22:
+            if 1.65 <= round(object_w / object_h, 2) <= 4.5 \
+                  and 9 <= object_w < 22 and object_h >= 2.5:
                 print cv2.contourArea(cnt), object_w, object_h, \
                     round(object_w / object_h, 2)
                 obj_parameters_list.append("A = %s, W = %s, H = %s, W/H = %s"

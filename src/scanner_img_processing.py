@@ -4,6 +4,7 @@ Created on Thu Apr 20 17:31:37 2017
 
 @author: ukalwa
 """
+# built-in module imports
 import sys, argparse
 import os
 import posixpath
@@ -11,6 +12,7 @@ import Tkinter as tk
 import tkFileDialog as filedialog
 import json
 
+# custom module imports
 from process_whole_image import process_whole_image
 
 root = tk.Tk()
@@ -23,6 +25,9 @@ obj = {'sizes': [], 'detected': []}
 
 
 def process_log(file_name):
+    '''
+    Logs the data to a json file
+    '''
     log_path = posixpath.join(file_name, 'Logs')
     json_path = posixpath.join(log_path, 'log.json')
     if not os.path.isdir(log_path):
@@ -34,6 +39,10 @@ def process_log(file_name):
 
 
 def main(dir_path='', file_path='', process_dir=False, search_string=None):
+    '''
+    This method processes a single image or batch processes all the images in a
+    specific directory and returns the image list for further analysis
+    '''
     global save_images, show_plots, create_plots, obj
     if process_dir:
         if len(dir_path) == 0:
@@ -41,7 +50,9 @@ def main(dir_path='', file_path='', process_dir=False, search_string=None):
                         initialdir=r'Y:\EggCounting\Images\Scanner Images')
         if len(dir_path) != 0:
             for name in os.listdir(dir_path):
-                if not os.path.isdir(name) and name.endswith('.tif') \
+                # Check only tiff files with search string
+                if not os.path.isdir(name) and (name.endswith('.tif') \
+						or name.endswith('.jpg')) \
                         and search_string in name:
                     file_path = posixpath.join(dir_path, name)
                     print "FILE: %s" % file_path
@@ -76,6 +87,10 @@ def main(dir_path='', file_path='', process_dir=False, search_string=None):
 
 # Main process starts here
 if __name__ == "__main__":
+    '''
+    The script processes a single file or batch processes all the images in a
+    directory specified by the command line arguments
+    '''
     usage = ("Usage python scanner_img_processing.py "
              "[-d <dir> -s <search string> or -f <full file path>]")
     if len(sys.argv) == 1:
