@@ -4,7 +4,10 @@ Created on Wed Apr 26 12:05:12 2017
 
 @author: ukalwa
 """
+# Built-in imports
 import os
+
+# third-party imports
 import cv2
 import numpy as np
 
@@ -38,8 +41,8 @@ def split_image_into_blocks(file_path, img_list, block_size):
                     elif not i * block_size[0] < shape[0] \
                             and j * block_size[1] < shape[1]:
                         img_list.append(img[i * block_size[0]:,
-                                        j * block_size[1]:(j + 1) * block_size[1],
-                                        :])
+                                        j * block_size[1]:(j + 1) *
+                                                          block_size[1],:])
                     else:
                         img_list.append(
                             img[i * block_size[0]:, j * block_size[1]:, :])

@@ -1,10 +1,29 @@
-from split_image_into_blocks import split_image_into_blocks
+# -*- coding: utf-8 -*-
+"""
+This module contains methods to interactively find the ranges for color
+thresholds to segment an object.
 
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
-import Tkinter as tk
-import tkFileDialog as filedialog
+Created on Thu Apr 20 17:31:37 2017
+
+@author: ukalwa
+"""
+# Built-in imports
+from __future__ import print_function, division
+
+if sys.version_info[0] < 3:
+    from Tkinter import Tk
+    import tkFileDialog as filedialog
+else:
+    from tkinter import Tk
+    from tkinter import filedialog
+
+# third-party imports
+import cv2  # noqa: E402
+import numpy as np  # noqa: E402
+import matplotlib.pyplot as plt  # noqa: E402
+
+# Custom module imports
+from split_image_into_blocks import split_image_into_blocks  # noqa: E402
 
 plt.style.use('ggplot')
 
@@ -21,14 +40,16 @@ file_path = None
 base_mean = None
 
 
-def nothing(something):
+# noinspection PyUnusedLocal
+def nothing(something=None):
     pass
 
 
+# noinspection PyUnusedLocal
 def onmouse(event, x, y, flags, params):
     global hsv
     if event == cv2.EVENT_LBUTTONDOWN:
-        print x, y, hsv[x, y]
+        print(x, y, hsv[x, y])
 
 
 def detect_obj(mask, res):
@@ -43,25 +64,26 @@ def detect_obj(mask, res):
             rect = cv2.minAreaRect(cnt)
             (object_w, object_h) = (round(max(rect[1]), 2),
                                     round(min(rect[1]), 2))
-#            print  object_w, object_h, round(object_w / object_h, 2)
+            # print  object_w, object_h, round(object_w / object_h, 2)
             if 1.78 <= round(object_w / object_h, 2) <= 3.35 \
                     and object_w < 22:
                 params = "A:%s W:%s H:%s W/H:%s Pos:%s " % (
-                        area[k], object_w, object_h,
-                        round(object_w / object_h, 2), k)
-#                print params
+                    area[k], object_w, object_h,
+                    round(object_w / object_h, 2), k)
+                #                print params
                 M = cv2.moments(cnt)
-                cx = int(M['m10']/M['m00'])
-                cy = int(M['m01']/M['m00'])
+                cx = int(M['m10'] / M['m00'])
+                cy = int(M['m01'] / M['m00'])
                 font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(res, params,(cx-10,cy-10), font,
-                            0.5,(0,255,255),1)
+                cv2.putText(res, params, (cx - 10, cy - 10), font,
+                            0.5, (0, 255, 255), 1)
                 # obj_parameters_list.append("%s, %s, %s" %(object_w, object_h,
                 #                            round(object_w/object_h,2)))
                 box = np.int0(cv2.boxPoints(rect))
-                cv2.drawContours(res,[box],0,color,2)
+                cv2.drawContours(res, [box], 0, color, 2)
         else:
             continue
+
 
 def get_obj_color(frame):
     global hsv
@@ -95,8 +117,8 @@ def get_obj_color(frame):
         mask = cv2.inRange(hsv, h_s_v_l_o_w, h_s_v_h_i_g_h)
         res = cv2.bitwise_and(frame, frame, mask=mask)
         font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(res,'s - Select q - Quit',
-                   (10,100), font, 1,(255,255,0),2)
+        cv2.putText(res, 's - Select q - Quit',
+                    (10, 100), font, 1, (255, 255, 0), 2)
         detect_obj(mask, res)
 
         cv2.imshow('Original', frame)
@@ -118,7 +140,7 @@ def select_obj_frame(filename):
 
     status, base_mean = split_image_into_blocks(filename, img_list, block_size)
     if len(status) != 0:
-        print status
+        print(status)
         return 1
     frame_no = 0
     for img in img_list:
