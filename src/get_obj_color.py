@@ -9,12 +9,13 @@ Created on Thu Apr 20 17:31:37 2017
 """
 # Built-in imports
 from __future__ import print_function, division
+import sys
 
 if sys.version_info[0] < 3:
-    from Tkinter import Tk
+    import Tkinter as tk
     import tkFileDialog as filedialog
 else:
-    from tkinter import Tk
+    import tkinter as tk
     from tkinter import filedialog
 
 # third-party imports
@@ -23,7 +24,8 @@ import numpy as np  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
 
 # Custom module imports
-from split_image_into_blocks import split_image_into_blocks  # noqa: E402
+from utilities import split_image_into_blocks  # noqa: E402
+from utilities import detect_obj, draw_box, add_text_to_box  # noqa: E402
 
 plt.style.use('ggplot')
 
@@ -53,36 +55,12 @@ def onmouse(event, x, y, flags, params):
 
 
 def detect_obj(mask, res):
-    color = (0, 255, 255)
-    _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE,
-                                      cv2.CHAIN_APPROX_NONE)
-    area = [int(cv2.contourArea(cnt)) for cnt in contours]
-    for k in np.arange(len(contours)):
-        cnt = contours[k]
-        if 40 <= cv2.contourArea(cnt) <= 135:
-            #        rect = cv2.minAreaRect(cnt)
-            rect = cv2.minAreaRect(cnt)
-            (object_w, object_h) = (round(max(rect[1]), 2),
-                                    round(min(rect[1]), 2))
-            # print  object_w, object_h, round(object_w / object_h, 2)
-            if 1.78 <= round(object_w / object_h, 2) <= 3.35 \
-                    and object_w < 22:
-                params = "A:%s W:%s H:%s W/H:%s Pos:%s " % (
-                    area[k], object_w, object_h,
-                    round(object_w / object_h, 2), k)
-                #                print params
-                M = cv2.moments(cnt)
-                cx = int(M['m10'] / M['m00'])
-                cy = int(M['m01'] / M['m00'])
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(res, params, (cx - 10, cy - 10), font,
-                            0.5, (0, 255, 255), 1)
-                # obj_parameters_list.append("%s, %s, %s" %(object_w, object_h,
-                #                            round(object_w/object_h,2)))
-                box = np.int0(cv2.boxPoints(rect))
-                cv2.drawContours(res, [box], 0, color, 2)
-        else:
-            continue
+    result = detect_obj(mask)
+    contours = result["contours"]
+    # Draw bounding box
+    draw_box(res, contours)
+    # Put text on the box
+    add_text_to_box(res, contours)
 
 
 def get_obj_color(frame):
@@ -152,7 +130,7 @@ def select_obj_frame(filename):
             plt.show()
             plt.grid(b=False)
             plt.waitforbuttonpress(.5)
-        except tk.TclError:
+        except:
             break
     inp = raw_input("Enter Frame number : ")
     if len(inp) != 0:
