@@ -28,13 +28,13 @@ else:
     import configparser
 
 # Custom module imports
-from src.process_whole_image import process_whole_image  # noqa: E402
+from src.process_image import process_image  # noqa: E402
 from src.utilities import validate_file  # noqa: E402
 
 root = Tk()
 root.withdraw()
 
-obj = {'sizes': [], 'detected': []}
+obj = {"sizes": [], "detected": [], "mean": []}
 
 
 def main(dir_path='', file_path='', process_dir=False, search_string=None):
@@ -49,7 +49,7 @@ def main(dir_path='', file_path='', process_dir=False, search_string=None):
     :return: List of the cropped egg images detected
     :rtype: List
     """
-
+    global obj
     if process_dir:
         if len(dir_path) == 0:  # using UI to get directory
             dir_path = filedialog.askdirectory(
@@ -64,10 +64,11 @@ def main(dir_path='', file_path='', process_dir=False, search_string=None):
                 if search_string is not None:
                     if search_string in name:
                         print("FILE: %s" % file_path)
-                        images.extend(process_file(file_path))
+                        process_image(file_path=file_path, obj=obj,
+                                      save_obj=False)
                 else:
                     print("FILE: %s" % file_path)
-                    images.extend(process_file(file_path))
+                    process_image(file_path=file_path, obj=obj, save_obj=False)
         return images
     else:
         if len(file_path) == 0:  # using UI to get file
@@ -75,20 +76,14 @@ def main(dir_path='', file_path='', process_dir=False, search_string=None):
                 initialdir=r'Y:\EggCounting\Images\Scanner Images')
         if len(file_path) == 0:  # uigetfile operation cancelled
             raise FileNotFoundError("File not found")
-        return process_file(file_path)
-
-
-def process_file(file_name):
-    global obj
-    res = process_whole_image(file_path=file_name,
-                              obj=obj, save_obj=False)
-    return res['img']
+        print("FILE: %s" % file_path)
+        process_image(file_path=file_path, obj=obj, save_obj=False)
 
 
 # Main process starts here
 if __name__ == "__main__":
     usage = '''    
-    Usage `python run_script.py [command value]`
+    Usage `python run_script.py [<Command> <Value>]`
 
         Command     Value                [Description]
         -uf                              Navigate through GUI to get file

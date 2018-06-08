@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+Module containing methods to processes a single block
+
 Created on Tue Apr 25 15:06:59 2017
 
 @author: ukalwa
@@ -22,8 +24,21 @@ import numpy as np  # noqa: E402
 from src.utilities import detect_obj, draw_box  # noqa: E402
 
 
-def process_block(b_img, base_mean, retr_objects=False, cfg_file=None,
+def process_block(block, base_mean, retr_objects=False, cfg_file=None,
                   logger=None, blk_cnt=-1):
+    """
+    This function processes a block by utilizing helper functions and
+    using config parameters extracted from configuration file
+
+    :param block: sub image as 3-d numpy array
+    :param base_mean: image mean to set the thresholds for different layers
+    :param retr_objects: retrieve object parameters or not
+    :param cfg_file: config file containing all configuration settings
+    :param logger: for logging status
+    :param blk_cnt: block number for reference (default=-1)
+    :return: dict containing processed block, egg counts, and egg params
+    :rtype: dict
+    """
     if not cfg_file:
         # Parse configuration file
         config = configparser.ConfigParser()
@@ -58,8 +73,8 @@ def process_block(b_img, base_mean, retr_objects=False, cfg_file=None,
     hsv_high = np.array(hsv_high, dtype=np.float32) / 255
 
     # base_mean = (0.53, 0.07, 0.88)
-    b_img_hsv = np.float32(cv2.cvtColor(b_img, cv2.COLOR_BGR2HSV))
-    b_image_hsv = b_img_hsv / np.max(b_img_hsv)
+    block_hsv = np.float32(cv2.cvtColor(block, cv2.COLOR_BGR2HSV))
+    b_image_hsv = block_hsv / np.max(block_hsv)
 
     # apply the hsv range on a mask
     mask = cv2.inRange(b_image_hsv, hsv_low, hsv_high)
@@ -67,13 +82,13 @@ def process_block(b_img, base_mean, retr_objects=False, cfg_file=None,
     result = detect_obj(mask, cfg_file=config, block=blk_cnt)
     contours = result["contours"]
     if create:
-        draw_box(b_img, contours, color=color, thickness=thickness)
+        draw_box(block, contours, color=color, thickness=thickness)
     if retr_objects:
         for p in range(len(contours)):
             cnt = contours[p]
             # bound_rect = map(sum,zip(cv2.boundingRect(cnt),img_tol))
             bound_rect = cv2.boundingRect(cnt)
-            extracted_obj = b_img[bound_rect[1]:bound_rect[1]
+            extracted_obj = block[bound_rect[1]:bound_rect[1]
                                                 + bound_rect[3],
                             bound_rect[0]:bound_rect[0]
                                           + bound_rect[2]].copy()
@@ -83,5 +98,5 @@ def process_block(b_img, base_mean, retr_objects=False, cfg_file=None,
             obj["mean"].append([np.array(cv2.mean(extracted_obj))[:-1],
                                 np.array(cv2.mean(obj_hsv))[:-1]])
 
-    return {'img': b_img, 'count': result["count"],
+    return {'img': block, 'count': result["count"],
             "obj_params": result["obj_params"], "obj": obj}

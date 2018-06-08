@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+Module containing methods to processes a high resolution scanned image.
+
 Created on Tue Apr 25 15:08:53 2017
 
 @author: ukalwa
@@ -26,16 +28,39 @@ from tqdm import tqdm  # noqa: E402
 
 # Custom module imports
 from src.process_block import process_block  # noqa: E402
-from src.utilities import split_image_into_blocks  # noqa: E402
-from src.utilities import validate_file  # noqa: E402
+from src.utilities import split_image, get_mean  # noqa: E402
+from src.utilities import validate_file, read_image  # noqa: E402
 
 plt.style.use('ggplot')
 
 
-def process_whole_image(file_path, obj=None, save_obj=False):
+def process_image(file_path, obj=None, save_obj=False):
+    """
+    This function reads an high resolution image file, extracts objects and
+    gets the total count of them.
+
+    * The image file is of a 3in. diameter Whatman filter paper scanned at \
+    4800 dpi using  a flatbed scanner. It consists of nematode eggs and soil \
+    debris on it.
+
+    * This function performs these following steps:
+        1. It extracts the configuration parameters related to blob \
+        identification, figure sizes, bounding box parameters and so on
+        2. Read the image file as a 3-d numpy array and splits it into \
+        various blocks and stores them as a list of numpy arrays.
+        3. It then loops though each block and detects any eggs based on \
+        parameters set in the config file and records the count and adds it to\
+        the total count
+        4. After all the blocks are completed, total egg counts, blocks with\
+        bounding boxes around eggs, egg params are all saved in text files\
+        for reference and debugging purposes
+
+    :param file_path: absolute file path of the image
+    :param obj: storing obj params for debugging purposes
+    :param save_obj: save these obj params to a file for viewing them later
+    """
     start_time = time.time()
-    if not validate_file(file_path):
-        raise FileNotFoundError("Invalid file {}".format(file_path))
+    img = read_image(file_path)
     if not obj:
         obj = {"sizes": [], "detected": [], "mean": []}
     # Images are split into blocks and saved as list of arrays
@@ -58,17 +83,15 @@ def process_whole_image(file_path, obj=None, save_obj=False):
     if not show_plots:
         plt.ioff()
 
-    img_list = []
     total_egg_count = 0  # Total Egg count initialization to 0
     block_count = 0  # To store current block
     count_list = ["Layer, Block, Count"]
     egg_list = ["BLK, A, W, H, W/H"]
     base_file = os.path.splitext(file_path)[0]
+    base_mean = get_mean(img, hsv_mean=True)
+
     print("Splitting images into image blocks")
-    status, base_mean = split_image_into_blocks(file_path,
-                                                img_list, block_size)
-    if base_mean is None:
-        return
+    img_list = split_image(img, block_size)
     if base_mean[1] < mean_thresh:
         print("Top or Interface detected")
         layer = "interface"
@@ -76,9 +99,6 @@ def process_whole_image(file_path, obj=None, save_obj=False):
         print("Pellet detected")
         layer = "pellet"
 
-    if len(status) != 0:
-        print(status)
-        return 1
     print("Processing all image blocks")
     progress_bar = tqdm(img_list)
     for block_image in progress_bar:
@@ -124,14 +144,13 @@ def process_whole_image(file_path, obj=None, save_obj=False):
             plt.close(fig)
         block_count += 1
     end_time = time.time()
-    count_list.append("Total Eggs counted %s, %s seconds"
-                      % (total_egg_count, round((end_time - start_time), 2)))
+    count_list.append(("Total Eggs counted {} in {} seconds".
+          format(total_egg_count, round((end_time - start_time), 2))))
     with open(posixpath.join(base_file, "count.txt"), "w") as f:
         for s in count_list:
             f.write(str(s) + "\n")
     with open(posixpath.join(base_file, "egg_list.txt"), "w") as f:
         for s in egg_list:
             f.write(str(s) + "\n")
-    print("Total Eggs counted %s in %s seconds"
-          % (total_egg_count, (end_time - start_time)))
-    return {'img': img_list, 'counts': count_list, 'eggs': egg_list}
+    print("Total Eggs counted {] in {} seconds".
+          format(total_egg_count, round((end_time - start_time), 2)))

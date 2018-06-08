@@ -24,7 +24,7 @@ import numpy as np  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
 
 # Custom module imports
-from utilities import split_image_into_blocks  # noqa: E402
+from utilities import split_image  # noqa: E402
 from utilities import detect_obj, draw_box, add_text_to_box  # noqa: E402
 
 plt.style.use('ggplot')
@@ -54,7 +54,13 @@ def onmouse(event, x, y, flags, params):
         print(x, y, hsv[x, y])
 
 
-def detect_obj(mask, res):
+def identify_obj(mask, res):
+    """
+    Identifies objects in the mask and draws their boundaries on res image
+
+    :param mask: binary image as 2-d numpy array
+    :param res: image as a 3-d numpy array
+    """
     result = detect_obj(mask)
     contours = result["contours"]
     # Draw bounding box
@@ -64,6 +70,13 @@ def detect_obj(mask, res):
 
 
 def get_obj_color(frame):
+    """
+    This method lets user to interactively update the hsv ranges until he/she \
+    is able to fully segment the objects of interest and selects those values \
+    for processing future frames.
+
+    :param frame: sub image as 3-d numpy array
+    """
     global hsv
     cv2.namedWindow('Original', cv2.WINDOW_NORMAL)
     cv2.namedWindow('Processed', cv2.WINDOW_NORMAL)
@@ -97,7 +110,7 @@ def get_obj_color(frame):
         font = cv2.FONT_HERSHEY_SIMPLEX
         cv2.putText(res, 's - Select q - Quit',
                     (10, 100), font, 1, (255, 255, 0), 2)
-        detect_obj(mask, res)
+        identify_obj(mask, res)
 
         cv2.imshow('Original', frame)
         cv2.imshow('Processed', res)
@@ -113,10 +126,18 @@ def get_obj_color(frame):
 
 
 def select_obj_frame(filename):
+    """
+    This method reads the image and displays user each block. Then user choses\
+    a block with higher objects of interest and enters that block number to\
+    use the interactive segmentation method.
+
+    :param filename:
+    :return:
+    """
     global img_list, base_mean
     block_size = (1024, 1024)
 
-    status, base_mean = split_image_into_blocks(filename, img_list, block_size)
+    status, base_mean = split_image(filename, img_list, block_size)
     if len(status) != 0:
         print(status)
         return 1
@@ -140,6 +161,9 @@ def select_obj_frame(filename):
 
 
 def open_file():
+    """
+    Lets user select an image file using file dialog
+    """
     global file_path
     root = tk.Tk()
     root.withdraw()

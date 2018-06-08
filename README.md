@@ -1,42 +1,106 @@
 **Nematode Egg Counting**
 
-This application reads high resolution scanner images and tracks and
-counts stained nematode eggs using OpenCV 3.1 and Python
+This application reads an high resolution image file, extracts objects and
+gets the total count of them.
 
 Requirments
 ===========
 
 *Environment Setup*
 
--   Download & Install [OpenCV 3.1.0]
--   Download & Install [Python 2.7]
--   Using pip install [numpy] and [matplotlib]
--   Copy cv2.pyd file from \[OPENCV\_LOCATION\]/build/python/2.7/\[x64
-    or x86\]/ to \[PYTHON\_LOCATION\]/Lib/site\_packages/
+-   Download & Install [Python 3.5] using [Anaconda] or [Miniconda] 
+(**Recommended**)
 
-It was tested on Windows and Mac OS X.
+Then you can run the following commands install required packages
+```bash
+conda install -y opencv3 matplotlib numpy tqdm 
+```
+*It is compatible with Python 2 and Python 3*
+*It was tested on Windows and Mac OS X.*
 
 Usage
 =====
+Clone this repository and change directory
+```bash
+git clone https://github.com/ukalwa/nematode_egg_counting
+cd nematode_egg_counting
+```
 
-Run `python src/scanner_img_processing.py [-d <dir> -s <search string> or -f <file>]`
+Configuration file `src/config.ini` contains all the settings for blob 
+identification, fig sizes and so on. Before running the script, update 
+accordingly.
+
+To process a single file using file dialog GUI
+```bash
+python run_script.py -uf
+```
+To process a directory full of image using file dialog GUI
+```bash
+python run_script.py -ud
+```
+To process a single file with its known absolute file path
+```bash
+python run_script.py -f <file_path>
+```
+To process a directory full of images with known path
+```bash
+python run_script.py -d <dir_path>
+```
+To process only some files in a directory with known path
+```bash
+python run_script.py -d <dir_path> -p <pattern string>
+```
+
+
 
 Steps involved
 ==============
 
 The code performs these following steps:
 
-1.  Read high resolution scanner image and split into 1024\*1024\*3
-    blocks and store them as a list of numpy arrays
-2.  It loops though each block and detects any eggs in that block and
-    prints the count
-3.  Total egg count is printed along with the time taken for the script
-    at the end
+1. It extracts the configuration parameters related to blob 
+identification, figure sizes, bounding box parameters and so on
+2. Read the image file as a 3-d numpy array and splits it into 
+various blocks and stores them as a list of numpy arrays.
+3. It then loops though each block and detects any eggs based on 
+parameters set in the config file and records the count and adds it to
+the total count
+4. After all the blocks are completed, total egg counts, blocks with
+bounding boxes around eggs, egg params are all saved in text files
+for reference and debugging purposes
 
-Here are some of the snapshots
+Here are some snapshots
 ==============================
+The one on the left is a block of the original image and the one on the right 
+is the processed image with eggs identified and labelled with bounding boxes
+ 
+**Top layer**
 
-![image]
+![image1]
+
+**Interface layer**
+
+![image2]
+
+**Bottom layer**
+
+![image3]
+
+Documentation
+=======
+
+For generating documentation, please follow these steps:
+* Make sure you have sphinx installed, you can install it like this
+```bash
+pip install sphinx
+```
+* Move to the docs directory and run make. It takes couple of minutes to \
+generate the build files.
+```bash
+cd docs
+make html
+explorer build\html\index.html
+```
 
 License
 =======
@@ -50,7 +114,11 @@ If you have any suggestions or identified bugs please feel free to post
 them!
 
   [OpenCV 3.1.0]: http://opencv.org/downloads.html
-  [Python 2.7]: https://www.python.org/downloads/
+  [Python 3.5]: https://www.python.org/downloads/
   [numpy]: https://www.scipy.org/scipylib/download.html
   [matplotlib]: https://matplotlib.org/
-  [image]: Images/snapshot_of_a_block.PNG
+  [Anaconda]: https://www.anaconda.com/download/
+  [Miniconda]: https://conda.io/miniconda.html
+  [image1]: Images/Picture1.jpg
+  [image2]: Images/Picture2.jpg
+  [image3]: Images/Picture3.jpg

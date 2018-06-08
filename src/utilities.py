@@ -1,12 +1,12 @@
 """
-Helper functions to assist the programs
+Helper functions to assist the main functions
 
 Created on Tue Jun 06 12:56:53 2018
 
 @author: ukalwa
 """
 # Compatibility with Python 2 and Python 3
-from __future__ import generators
+from __future__ import generators, division
 # Built-in imports
 import os
 
@@ -16,6 +16,13 @@ import numpy as np
 
 
 def validate_file(file_name):
+    """
+    Checks if the file exists and it is an image file (TIFF or JPGEG)
+
+    :param file_name: absolute path of the file
+    :return: True if is an image file and False if it isn't
+    :rtype: bool
+    """
     if not os.path.isdir(file_name) \
             and (file_name.endswith('.tif')
                  or file_name.endswith('.jpg')):
@@ -23,48 +30,71 @@ def validate_file(file_name):
     return False
 
 
-def split_image_into_blocks(file_path, img_list, block_size):
-    base_mean = None
-    if os.path.exists(file_path):
-        img = cv2.imread(file_path)
-        if img is not None:
-            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-            base_mean = np.array(cv2.mean(hsv))[:-1] / 255
-            shape = np.array(img.shape, dtype=float)[:-1]
-            if shape[0] < block_size[0] or shape[1] < block_size[1]:
-                return 'Block size greater than image size'
-            w = int(np.ceil(shape[0] / block_size[0]))
-            h = int(np.ceil(shape[1] / block_size[1]))
+def read_image(file_path):
+    """
+    Validates the image file, reads and returns it as a 3-d numpy array
 
-            for i in range(w):
-                for j in range(h):
-                    #        print i,j, i*1024, shape[0], j*1024, shape[1]
-                    if i * block_size[0] < shape[0] \
-                            and j * block_size[1] < shape[1]:
-                        img_list.append(
-                            img[i * block_size[0]:(i + 1) * block_size[0],
-                            j * block_size[1]:(j + 1) * block_size[1], :])
-                    elif i * block_size[0] < shape[0] \
-                            and not j * block_size[1] < shape[1]:
-                        img_list.append(
-                            img[i * block_size[0]:(i + 1) * block_size[0],
-                            j * block_size[1]:, :])
-                    elif not i * block_size[0] < shape[0] \
-                            and j * block_size[1] < shape[1]:
-                        img_list.append(img[i * block_size[0]:,
-                                        j * block_size[1]:(j + 1) *
-                                                          block_size[1], :])
-                    else:
-                        img_list.append(
-                            img[i * block_size[0]:, j * block_size[1]:, :])
-            return ['', base_mean]
-        else:
-            return ['Invalid file', base_mean]
-    else:
-        return ['Invalid file', base_mean]
+    :param file_path: absolute path of the file
+    :return: image as 3-d numpy array
+    """
+    if not validate_file(file_path):
+        raise FileNotFoundError('Invalid file {}'.format(file_path))
+    img = cv2.imread(file_path)
+    if img is None:
+        raise IOError("Unable to read file {}".format(file_path))
+    return img
+
+
+def split_image(img, block_size):
+    """
+    Splits the image to multiple blocks based on block_size
+
+    :param img: image as 3-d numpy array
+    :param block_size: tuple of size 2 (block_width, block_height)
+    :return: sub_images as a list
+    :rtype: List
+    """
+    img_list = []
+    shape = np.array(img.shape, dtype=float)[:-1]
+    if shape[0] < block_size[0] or shape[1] < block_size[1]:
+        raise ValueError('Block size greater than image size')
+    w = int(np.ceil(shape[0] / block_size[0]))
+    h = int(np.ceil(shape[1] / block_size[1]))
+
+    for i in range(w):
+        for j in range(h):
+            if i * block_size[0] < shape[0] \
+                    and j * block_size[1] < shape[1]:
+                img_list.append(
+                    img[i * block_size[0]:(i + 1) * block_size[0],
+                    j * block_size[1]:(j + 1) * block_size[1], :])
+            elif i * block_size[0] < shape[0] \
+                    and not j * block_size[1] < shape[1]:
+                img_list.append(
+                    img[i * block_size[0]:(i + 1) * block_size[0],
+                    j * block_size[1]:, :])
+            elif not i * block_size[0] < shape[0] \
+                    and j * block_size[1] < shape[1]:
+                img_list.append(img[i * block_size[0]:,
+                                j * block_size[1]:(j + 1) *
+                                                  block_size[1], :])
+            else:
+                img_list.append(
+                    img[i * block_size[0]:, j * block_size[1]:, :])
+    return img_list
 
 
 def detect_obj(mask, cfg_file=None, block=-1):
+    """
+    Identifies the objects from a binary image based on parameters such as
+    width, height, shape, and area specified in the config file.
+
+    :param mask: binary image with potential objects and unwanted blobs
+    :param cfg_file: config file with the object identification parameters
+    :param block: block number for logging purposes (default=-1)
+    :return: return a dict with count and lists of object params and contours
+    :rtype: dict
+    """
     if not cfg_file:
         # Parse configuration file
         config = configparser.ConfigParser()
@@ -109,6 +139,16 @@ def detect_obj(mask, cfg_file=None, block=-1):
 
 
 def draw_box(image, contours, color=(255, 255, 0), thickness=2):
+    """
+    Draws a min area rectangle around the object identified by their boundary
+    contours. Since it is an inplace change, it affects the input image which
+    is why this method doesn't return anything.
+
+    :param image: image as a numpy array
+    :param contours: describing object boundaries as a list of numpy arrays
+    :param color: a 3-d tuple specifying BGR colors (default=(255, 255, 0))
+    :param thickness: box thickness (default=2)
+    """
     for k in range(len(contours)):
         cnt = contours[k]
         rect = cv2.minAreaRect(cnt)
@@ -117,8 +157,19 @@ def draw_box(image, contours, color=(255, 255, 0), thickness=2):
 
 
 def add_text_to_box(image, contours, color=(0, 255, 255), thickness=1,
-                 font=cv2.FONT_HERSHEY_SIMPLEX, font_scale = 0.5,
-                 offset=(10,10)):
+                 font=cv2.FONT_HERSHEY_SIMPLEX, font_scale=0.5,
+                 offset=(10, 10)):
+    """
+    Adds a label to the objects identified by their boundary contours.
+
+    :param image: image as a numpy array
+    :param contours: describing object boundaries as a list of numpy arrays
+    :param color: a 3-d tuple specifying BGR colors (default=(0, 255, 255))
+    :param thickness: box thickness (default=1)
+    :param font: text font (default=cv2.FONT_HERSHEY_SIMPLEX)
+    :param font_scale: font scale (default=0.5)
+    :param offset: distance from the box as (x_dist, y_dist) (default=(10,10)
+    """
     for i in range(len(contours)):
         cnt = contours[i]
         M = cv2.moments(cnt)
@@ -126,3 +177,19 @@ def add_text_to_box(image, contours, color=(0, 255, 255), thickness=1,
         cy = int(M['m01'] / M['m00'])
         cv2.putText(image, params, (cx - offset[0], cy - offset[1]), font,
                     font_scale, color, thickness)
+
+
+def get_mean(image, hsv_mean=False):
+    """
+    Calculate the mean of the image. Setting hsv_mean=True, this method can
+    calculate the mean of the hsv image instead.
+
+    :param image: Image as 3-d numpy array
+    :param hsv_mean: True to get hsv image mean (default=False)
+    :return: mean of the image
+    :rtype: float
+    """
+    if hsv_mean:
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        return np.array(cv2.mean(hsv))[:-1] / 255
+    return np.array(cv2.mean(image))[:-1] / 255
