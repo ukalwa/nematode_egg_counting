@@ -94,7 +94,7 @@ Documentation
 For generating documentation, please follow these steps:
 * Make sure you have sphinx installed, you can install it like this
 ```bash
-pip install sphinx
+pip install sphinx sphinx_rtd_theme
 ```
 * Move to the docs directory and run make. It takes couple of minutes to \
 generate the build files.
