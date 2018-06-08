@@ -58,16 +58,16 @@ Steps involved
 
 The code performs these following steps:
 
-    1.  It extracts the configuration parameters related to blob 
-        identification, figure sizes, bounding box parameters and so on
-    2.  Read the image file as a 3-d numpy array and splits it into 
-        various blocks and stores them as a list of numpy arrays.
-    3.  It then loops though each block and detects any eggs based on 
-        parameters set in the config file and records the count and adds it to
-        the total count
-    4.  After all the blocks are completed, total egg counts, blocks with
-        bounding boxes around eggs, egg params are all saved in text files
-        for reference and debugging purposes
+1. It extracts the configuration parameters related to blob 
+identification, figure sizes, bounding box parameters and so on
+2. Read the image file as a 3-d numpy array and splits it into 
+various blocks and stores them as a list of numpy arrays.
+3. It then loops though each block and detects any eggs based on 
+parameters set in the config file and records the count and adds it to
+the total count
+4. After all the blocks are completed, total egg counts, blocks with
+bounding boxes around eggs, egg params are all saved in text files
+for reference and debugging purposes
 
 Here are some snapshots
 ==============================
