@@ -14,7 +14,7 @@ Requirments
 
 Then you can run the following commands install required packages
 ```bash
-conda install -y opencv3 matplotlib numpy tqdm 
+conda install -y opencv3 matplotlib numpy tqdm pillow
 ```
 *It is compatible with Python 2 and Python 3*
 *It was tested on Windows and Mac OS X.*

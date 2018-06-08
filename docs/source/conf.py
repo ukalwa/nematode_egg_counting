@@ -12,9 +12,12 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
+import os
 import sys
-sys.path.insert(0, r"Z:\Upender\Python_Projects\nematode_egg_counting")
+curr_dir = os.path.dirname(os.path.realpath(__file__))
+root_dir = os.path.abspath(os.path.join(curr_dir, '..', '..'))
+if root_dir not in sys.path:
+    sys.path.insert(0, root_dir)
 
 
 # -- Project information -----------------------------------------------------

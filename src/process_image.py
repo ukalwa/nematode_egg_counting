@@ -152,5 +152,5 @@ def process_image(file_path, obj=None, save_obj=False):
     with open(posixpath.join(base_file, "egg_list.txt"), "w") as f:
         for s in egg_list:
             f.write(str(s) + "\n")
-    print("Total Eggs counted {] in {} seconds".
+    print("Total Eggs counted {} in {} seconds".
           format(total_egg_count, round((end_time - start_time), 2)))
