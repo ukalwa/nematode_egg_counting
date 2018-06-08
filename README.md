@@ -32,6 +32,8 @@ accordingly.
 
 To process a single file using file dialog GUI
 ```bash
+python run_script.py
+(or)
 python run_script.py -uf
 ```
 To process a directory full of image using file dialog GUI
