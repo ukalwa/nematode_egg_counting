@@ -1,10 +1,11 @@
-**Nematode Egg Counting**
+Nematode Egg Counting
+=====================
 
 This application reads an high resolution image file, extracts objects and
 gets the total count of them.
 
 Requirments
-===========
+-----------
 
 *Environment Setup*
 
@@ -19,7 +20,7 @@ conda install -y opencv3 matplotlib numpy tqdm
 *It was tested on Windows and Mac OS X.*
 
 Usage
-=====
+------
 Clone this repository and change directory
 ```bash
 git clone https://github.com/ukalwa/nematode_egg_counting
@@ -56,7 +57,7 @@ python run_script.py -d <dir_path> -p <pattern string>
 
 
 Steps involved
-==============
+--------------
 
 The code performs these following steps:
 
@@ -72,7 +73,7 @@ bounding boxes around eggs, egg params are all saved in text files
 for reference and debugging purposes
 
 Here are some snapshots
-==============================
+------------------------
 The one on the left is a block of the original image and the one on the right 
 is the processed image with eggs identified and labelled with bounding boxes
  
@@ -89,7 +90,7 @@ is the processed image with eggs identified and labelled with bounding boxes
 ![image3]
 
 Documentation
-=======
+----------------
 
 For generating documentation, please follow these steps:
 * Make sure you have sphinx installed, you can install it like this
@@ -105,12 +106,12 @@ explorer build\html\index.html
 ```
 
 License
-=======
+---------
 
 This code is GNU GENERAL PUBLIC LICENSED.
 
 Contributing
-============
+-------------
 
 If you have any suggestions or identified bugs please feel free to post
 them!
