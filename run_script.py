@@ -14,27 +14,20 @@ from __future__ import print_function
 import sys
 import argparse
 import os
-import sys
-import posixpath
-import json
 
 if sys.version_info[0] < 3:
     from Tkinter import Tk
     import tkFileDialog as filedialog
-    import ConfigParser as configparser
 else:
     from tkinter import Tk
     from tkinter import filedialog
-    import configparser
 
 # Custom module imports
-from src.process_image import process_image  # noqa: E402
-from src.utilities import validate_file  # noqa: E402
+from src.process_image import process_image
+from src.utilities import validate_file
 
 root = Tk()
 root.withdraw()
-
-obj = {"sizes": [], "detected": [], "mean": []}
 
 
 def main(dir_path='', file_path='', process_dir=False, search_string=None):
@@ -49,7 +42,6 @@ def main(dir_path='', file_path='', process_dir=False, search_string=None):
     :return: List of the cropped egg images detected
     :rtype: List
     """
-    global obj
     if process_dir:
         if len(dir_path) == 0:  # using UI to get directory
             dir_path = filedialog.askdirectory(
@@ -64,11 +56,10 @@ def main(dir_path='', file_path='', process_dir=False, search_string=None):
                 if search_string is not None:
                     if search_string in name:
                         print("FILE: %s" % file_path)
-                        process_image(file_path=file_path, obj=obj,
-                                      save_obj=False)
+                        process_image(file_path=file_path)
                 else:
                     print("FILE: %s" % file_path)
-                    process_image(file_path=file_path, obj=obj, save_obj=False)
+                    process_image(file_path=file_path)
         return images
     else:
         if len(file_path) == 0:  # using UI to get file
@@ -77,12 +68,12 @@ def main(dir_path='', file_path='', process_dir=False, search_string=None):
         if len(file_path) == 0:  # uigetfile operation cancelled
             raise FileNotFoundError("File not found")
         print("FILE: %s" % file_path)
-        process_image(file_path=file_path, obj=obj, save_obj=False)
+        process_image(file_path=file_path)
 
 
 # Main process starts here
 if __name__ == "__main__":
-    usage = '''    
+    usage = '''
     Usage `python run_script.py [<Command> <Value>]`
 
         Command     Value                [Description]
@@ -96,7 +87,7 @@ if __name__ == "__main__":
 
         Warning: Specifying only directory processes all the files in the
         directory. However, If you want to process some files with a specific
-        pattern include -p <pattern matching string> argument when running 
+        pattern include -p <pattern matching string> argument when running
         with directory option
     '''
     warn_usage = '''

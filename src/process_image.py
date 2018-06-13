@@ -21,20 +21,20 @@ else:
     import configparser
 
 # third-party imports
-import cv2  # noqa: E402
-import matplotlib.pyplot as plt  # noqa: E402
-import numpy as np  # noqa: E402
-from tqdm import tqdm  # noqa: E402
+import cv2
+import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 # Custom module imports
-from src.process_block import process_block  # noqa: E402
-from src.utilities import split_image, get_mean  # noqa: E402
-from src.utilities import validate_file, read_image  # noqa: E402
+from src.process_block import process_block
+from src.utilities import split_image, get_mean
+from src.utilities import read_image, get_obj_box
+from src.utilities import get_bkground_class
 
 plt.style.use('ggplot')
 
 
-def process_image(file_path, obj=None, save_obj=False):
+def process_image(file_path):
     """
     This function reads an high resolution image file, extracts objects and
     gets the total count of them.
@@ -56,17 +56,13 @@ def process_image(file_path, obj=None, save_obj=False):
         for reference and debugging purposes
 
     :param file_path: absolute file path of the image
-    :param obj: storing obj params for debugging purposes
-    :param save_obj: save these obj params to a file for viewing them later
     """
     start_time = time.time()
     img = read_image(file_path)
-    if not obj:
-        obj = {"sizes": [], "detected": [], "mean": []}
     # Images are split into blocks and saved as list of arrays
     config = configparser.ConfigParser()
     CFG_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                           'config.ini')
+                            'config.ini')
     config.read(CFG_PATH)
     # Block params
     block_size = [int(item) for item in config.get(
@@ -78,20 +74,34 @@ def process_image(file_path, obj=None, save_obj=False):
     figsize = [int(item) for item in config.get("fig", "size").split(",")]
     ext = config.get("fig", "ext")
     create_plots = config.getboolean("fig", "create")
-    save_images = config.getboolean("fig", "save")
     show_plots = config.getboolean("fig", "show")
     if not show_plots:
         plt.ioff()
+
+    # Save options
+    save_images = config.getboolean("save", "fig")
+    save_params = config.getboolean("save", "obj_params")
+    save_obj = config.getboolean("save", "obj")
+    save_counts = config.getboolean("save", "counts")
+    save_bkground = config.getboolean("save", "background")
+    box_size = [int(item) for item in config.get("box", "size").split(",")]
 
     total_egg_count = 0  # Total Egg count initialization to 0
     block_count = 0  # To store current block
     count_list = ["Layer, Block, Count"]
     egg_list = ["BLK, A, W, H, W/H"]
     base_file = os.path.splitext(file_path)[0]
+    if os.path.sep in base_file:
+        file_name = base_file.split("\\")[-1]
+    elif posixpath.sep in base_file:
+        file_name = base_file.split("/")[-1]
+    else:
+        file_name = base_file
     base_mean = get_mean(img, hsv_mean=True)
+    obj_list, bkground_list = [], []
 
     print("Splitting images into image blocks")
-    img_list = split_image(img, block_size)
+    img_list, _ = split_image(img, block_size)
     if base_mean[1] < mean_thresh:
         print("Top or Interface detected")
         layer = "interface"
@@ -105,16 +115,24 @@ def process_image(file_path, obj=None, save_obj=False):
         progress_bar.set_description("Egg Count: {}".format(total_egg_count))
         b_img = block_image.copy()
         result = process_block(b_img, base_mean,
-                               retr_objects=save_obj,
                                cfg_file=config, blk_cnt=block_count)
         count = result['count']
         processed_image = result['img']
         egg_list.extend(result['obj_params'])
-
-        for key in obj:
-            obj[key].extend(result["obj"][key])
+        contours = result["contours"]
 
         count_list.append("{}, {}, {}".format(layer, block_count, count))
+
+        # Save objects
+        if save_obj:
+            block_img_list, box_lst = get_obj_box(block_image, contours,
+                                                  fixed_size=box_size)
+            obj_list.extend(block_img_list)
+
+            if save_bkground:
+                bkground_list.extend(get_bkground_class(
+                    block_image, box_lst, fixed_size=box_size))
+
         total_egg_count += count
         if create_plots:
             fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
@@ -145,12 +163,34 @@ def process_image(file_path, obj=None, save_obj=False):
         block_count += 1
     end_time = time.time()
     count_list.append(("Total Eggs counted {} in {} seconds".
-          format(total_egg_count, round((end_time - start_time), 2))))
-    with open(posixpath.join(base_file, "count.txt"), "w") as f:
-        for s in count_list:
-            f.write(str(s) + "\n")
-    with open(posixpath.join(base_file, "egg_list.txt"), "w") as f:
-        for s in egg_list:
-            f.write(str(s) + "\n")
+                       format(total_egg_count, round(
+                               (end_time - start_time), 2))))
+    if save_counts:
+        with open(posixpath.join(base_file, "count.txt"), "w") as f:
+            for s in count_list:
+                f.write(str(s) + "\n")
+    if save_params:
+        with open(posixpath.join(base_file, "egg_list.txt"), "w") as f:
+            for s in egg_list:
+                f.write(str(s) + "\n")
+    if save_obj:
+        train_dir = os.path.join(base_file, "train")
+        eggs_dir = os.path.join(base_file, "train", "eggs")
+        if not os.path.isdir(train_dir):
+            os.mkdir(train_dir)
+        if not os.path.isdir(eggs_dir):
+            os.mkdir(eggs_dir)
+        for idx, obj in enumerate(obj_list):
+            cv2.imwrite(os.path.join(eggs_dir,
+                                     "eggs_{}_{:04d}.jpg".format(
+                                         file_name, idx)), obj)
+        if save_bkground:
+            bkground_dir = os.path.join(base_file, "train", "background")
+            if not os.path.isdir(bkground_dir):
+                os.mkdir(bkground_dir)
+            for idx, obj in enumerate(bkground_list):
+                cv2.imwrite(os.path.join(bkground_dir,
+                                         "bkg_{}_{:06d}.jpg".format(
+                                             file_name, idx)), obj)
     print("Total Eggs counted {} in {} seconds".
           format(total_egg_count, round((end_time - start_time), 2)))

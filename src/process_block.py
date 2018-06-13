@@ -17,22 +17,20 @@ else:
     import configparser
 
 # third-party imports
-import cv2  # noqa: E402
-import numpy as np  # noqa: E402
+import cv2
+import numpy as np
 
 # Custom module imports
-from src.utilities import detect_obj, draw_box  # noqa: E402
+from src.utilities import get_obj_params, draw_box
 
 
-def process_block(block, base_mean, retr_objects=False, cfg_file=None,
-                  logger=None, blk_cnt=-1):
+def process_block(block, base_mean, cfg_file=None, logger=None, blk_cnt=-1):
     """
     This function processes a block by utilizing helper functions and
     using config parameters extracted from configuration file
 
     :param block: sub image as 3-d numpy array
     :param base_mean: image mean to set the thresholds for different layers
-    :param retr_objects: retrieve object parameters or not
     :param cfg_file: config file containing all configuration settings
     :param logger: for logging status
     :param blk_cnt: block number for reference (default=-1)
@@ -58,7 +56,6 @@ def process_block(block, base_mean, retr_objects=False, cfg_file=None,
     # fig params
     create = config.getboolean("fig", "create")
 
-    obj = {"sizes": [], "detected": [], "mean": []}
     # To detect top and interface
     if base_mean[1] < mean_thresh:
         layer = "interface"
@@ -79,24 +76,10 @@ def process_block(block, base_mean, retr_objects=False, cfg_file=None,
     # apply the hsv range on a mask
     mask = cv2.inRange(b_image_hsv, hsv_low, hsv_high)
 
-    result = detect_obj(mask, cfg_file=config, block=blk_cnt)
+    result = get_obj_params(mask, cfg_file=config, block=blk_cnt)
     contours = result["contours"]
     if create:
         draw_box(block, contours, color=color, thickness=thickness)
-    if retr_objects:
-        for p in range(len(contours)):
-            cnt = contours[p]
-            # bound_rect = map(sum,zip(cv2.boundingRect(cnt),img_tol))
-            bound_rect = cv2.boundingRect(cnt)
-            extracted_obj = block[bound_rect[1]:bound_rect[1]
-                                                + bound_rect[3],
-                            bound_rect[0]:bound_rect[0]
-                                          + bound_rect[2]].copy()
-            obj_hsv = cv2.cvtColor(extracted_obj, cv2.COLOR_BGR2HSV)
-            obj["detected"].append(extracted_obj)
-            obj["sizes"].append(bound_rect[2:])
-            obj["mean"].append([np.array(cv2.mean(extracted_obj))[:-1],
-                                np.array(cv2.mean(obj_hsv))[:-1]])
 
     return {'img': block, 'count': result["count"],
-            "obj_params": result["obj_params"], "obj": obj}
+            "obj_params": result["obj_params"], "contours": contours}

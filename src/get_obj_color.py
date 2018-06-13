@@ -14,18 +14,20 @@ import sys
 if sys.version_info[0] < 3:
     import Tkinter as tk
     import tkFileDialog as filedialog
+    get_input = raw_input
 else:
     import tkinter as tk
     from tkinter import filedialog
+    get_input = input
 
 # third-party imports
-import cv2  # noqa: E402
-import numpy as np  # noqa: E402
-import matplotlib.pyplot as plt  # noqa: E402
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Custom module imports
-from utilities import split_image  # noqa: E402
-from utilities import detect_obj, draw_box, add_text_to_box  # noqa: E402
+from utilities import split_image
+from utilities import detect_obj, draw_box, add_text_to_box
 
 plt.style.use('ggplot')
 
@@ -153,7 +155,7 @@ def select_obj_frame(filename):
             plt.waitforbuttonpress(.5)
         except:
             break
-    inp = raw_input("Enter Frame number : ")
+    inp = get_input("Enter Frame number : ")
     if len(inp) != 0:
         frame_no = int(inp)
     if 0 <= frame_no < len(img_list):
