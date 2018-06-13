@@ -9,14 +9,15 @@ Requirments
 
 *Environment Setup*
 
--   Download & Install [Python 3.5] using [Anaconda] or [Miniconda] 
+-   Download & Install [Python] using [Anaconda] or [Miniconda] 
 (**Recommended**)
 
 Then you can run the following commands install required packages
 ```bash
 conda install -y opencv matplotlib numpy tqdm pillow -c conda-forge
 ```
-*It is compatible with Python 2 and Python 3*
+*It is compatible with both Python 2.7 and Python 3.5, however installing Python 3.5 or greater is recommended.*
+
 *It was tested on Windows and Mac OS X.*
 
 Usage
@@ -117,7 +118,7 @@ If you have any suggestions or identified bugs please feel free to post
 them!
 
   [OpenCV 3.1.0]: http://opencv.org/downloads.html
-  [Python 3.5]: https://www.python.org/downloads/
+  [Python]: https://www.python.org/downloads/
   [numpy]: https://www.scipy.org/scipylib/download.html
   [matplotlib]: https://matplotlib.org/
   [Anaconda]: https://www.anaconda.com/download/
