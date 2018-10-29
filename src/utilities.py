@@ -105,7 +105,7 @@ def get_obj_params(mask, cfg_file=None, block=-1):
     min_h = config.getfloat("blob", "min_height")
     min_area = config.getint("blob", "min_area")
     max_area = config.getint("blob", "max_area")
-    im2, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE,
+    _, contours, _ = cv2.findContours(mask, cv2.RETR_TREE,
                                                 cv2.CHAIN_APPROX_NONE)
 
     obj_params = []
@@ -145,7 +145,7 @@ def draw_box(image, contours, color=(255, 255, 0), thickness=2):
     for k in range(len(contours)):
         cnt = contours[k]
         rect = cv2.minAreaRect(cnt)
-        box = np.int0(cv2.boxPoints(rect))
+        box = np.int64(cv2.boxPoints(rect))
         cv2.drawContours(image, [box], 0, color, thickness)
 
 
@@ -224,7 +224,7 @@ def crop_img(image, rect):
     :return: cropped image
     """
     x, y, w, h = rect
-    height, width, channels = image.shape
+    height, width, _ = image.shape
     if x + w < width and y + h < height:
         return image[y:y + h, x: x + w, :], (x, y, x+w, y+h)
     elif x + w < width and not y + h < height:
@@ -233,9 +233,8 @@ def crop_img(image, rect):
     elif not x + w < width and y + h < height:
         ch, cw, _ = image[y:y + h, x:, :].shape
         return image[y:y + h, x:, :], (x, y, x+cw, y+ch)
-    else:
-        ch, cw, _ = image[y:, x:, :].shape
-        return image[y:, x:, :], (x, y, x+cw, y+ch)
+    ch, cw, _ = image[y:, x:, :].shape
+    return image[y:, x:, :], (x, y, x+cw, y+ch)
 
 
 def calculate_iou(box1, box2):
@@ -289,3 +288,12 @@ def get_bkground_class(image, box_lst, fixed_size=(25, 25)):
             if iou < 0.5:
                 bkground_list.append(img_list[idx])
     return bkground_list
+
+def create_mask(shape, contours):
+    if len(shape) == 3:
+        shape = shape[:2]
+    mask = np.zeros(shape, dtype=np.uint8)
+    for idx in range(len(contours)):
+        cv2.drawContours(mask, contours, idx, (255,255,255), -1)
+    return mask
+

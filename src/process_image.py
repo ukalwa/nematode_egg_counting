@@ -92,9 +92,9 @@ def process_image(file_path):
     egg_list = ["BLK, A, W, H, W/H"]
     base_file = os.path.splitext(file_path)[0]
     if os.path.sep in base_file:
-        file_name = base_file.split("\\")[-1]
+        file_name = base_file.split(os.path.sep)[-1]
     elif posixpath.sep in base_file:
-        file_name = base_file.split("/")[-1]
+        file_name = base_file.split(posixpath.sep)[-1]
     else:
         file_name = base_file
     base_mean = get_mean(img, hsv_mean=True)
@@ -115,7 +115,8 @@ def process_image(file_path):
         progress_bar.set_description("Egg Count: {}".format(total_egg_count))
         b_img = block_image.copy()
         result = process_block(b_img, base_mean,
-                               cfg_file=config, blk_cnt=block_count)
+                               cfg_file=config, blk_cnt=block_count,
+                               file_name = file_name)
         count = result['count']
         processed_image = result['img']
         egg_list.extend(result['obj_params'])

@@ -22,9 +22,11 @@ import numpy as np
 
 # Custom module imports
 from src.utilities import get_obj_params, draw_box
+from src.utilities import create_mask
 
 
-def process_block(block, base_mean, cfg_file=None, logger=None, blk_cnt=-1):
+def process_block(block, base_mean, file_name="",
+                  cfg_file=None, logger=None, blk_cnt=-1):
     """
     This function processes a block by utilizing helper functions and
     using config parameters extracted from configuration file
@@ -46,7 +48,14 @@ def process_block(block, base_mean, cfg_file=None, logger=None, blk_cnt=-1):
     else:
         config = cfg_file
 
+    # File name used to link blocks to original image
+    if file_name:
+        # To ensure file_name only has base name instead of absolute path
+        file_name = os.path.basename(file_name)
+
     mean_thresh = config.getfloat('DEFAULT', 'mean_thresh')
+    # Added to save binary blocks for machine learning
+    save_train = config.getboolean("save", "train")
 
     # box params
     color = tuple([int(item) for item in config.get("box", "color").
@@ -76,10 +85,31 @@ def process_block(block, base_mean, cfg_file=None, logger=None, blk_cnt=-1):
     # apply the hsv range on a mask
     mask = cv2.inRange(b_image_hsv, hsv_low, hsv_high)
 
+    # Detect objects with the criteria specified in config file
     result = get_obj_params(mask, cfg_file=config, block=blk_cnt)
-    contours = result["contours"]
+
+    # Create binary image from the contours
+    if save_train:
+        if len(result["contours"]) > 0:
+            binary_image = create_mask(mask.shape, result["contours"])
+            save_dir = config.get("save", "path")
+            if save_dir is not None:
+                if not os.path.exists(save_dir): os.mkdir(save_dir)
+            # Save mask
+            cv2.imwrite(
+                    os.path.join(save_dir,
+                                "{}_{:04d}_mask.tif".format(file_name,
+                                blk_cnt)),
+                    binary_image)
+            # Save original
+            cv2.imwrite(
+                    os.path.join(save_dir,
+                                "{}_{:04d}.tif".format(file_name, blk_cnt)),
+                    block.copy())
+
+    # Overlay the block with detected contours
     if create:
-        draw_box(block, contours, color=color, thickness=thickness)
+        draw_box(block, result["contours"], color=color, thickness=thickness)
 
     return {'img': block, 'count': result["count"],
-            "obj_params": result["obj_params"], "contours": contours}
+            "obj_params": result["obj_params"], "contours": result["contours"]}

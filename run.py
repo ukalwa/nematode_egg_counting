@@ -82,7 +82,6 @@ if __name__ == "__main__":
         -d          <directory path>     Process files in entire directory
         -p          <pattern string>     Process files matching this pattern
         -f          <file path>          Process file specified by path
-        -ns                              Don't save images
         -h                               Show this help message and exit
 
         Warning: Specifying only directory processes all the files in the
@@ -107,8 +106,6 @@ if __name__ == "__main__":
         parser.add_argument("-d", "--dir", help="directory containing files")
         parser.add_argument("-f", "--file", help="full file path")
         parser.add_argument("-p", "--pattern", help="Pattern")
-        parser.add_argument("-ns", "--nosave", help="Don't save files",
-                            action='store_true')
         parser.add_argument('-h', '--help', action='store_true',
                             help='show this help message and exit')
         try:
@@ -120,8 +117,6 @@ if __name__ == "__main__":
             elif args.uid:
                 main(process_dir=True)
             else:
-                if args.nosave:
-                    save_images = False
                 if args.dir and args.pattern:
                     if not os.path.isdir(args.dir):
                         raise FileNotFoundError("Directory not found {}".

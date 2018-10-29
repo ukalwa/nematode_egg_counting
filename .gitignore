@@ -2,3 +2,5 @@
 .idea
 .idea/*
 docs/build
+.ipynb_checkpoints
+*.ini
