@@ -1,0 +1,43 @@
+[DEFAULT]
+block_size = 1024,1024
+mean_thresh = 0.055
+
+[interface]
+hsv_min = 140,65,118
+hsv_max = 165,255,255
+
+[pellet]
+hsv_min = 140,80,155
+hsv_max = 165,255,255
+
+[blob]
+min_shape = 1.65
+max_shape = 4.5
+min_width = 9
+max_width = 22
+min_height = 2.5
+min_area = 35
+max_area = 135
+
+[box]
+color = 255,255,0
+thickness = 2
+draw = True
+size = 25,25
+
+[fig]
+size = 8,5
+dpi = 200
+show = False
+create = True
+ext = .jpg
+
+[debug]
+obj_extract = False
+
+[save]
+counts = True
+fig = True
+obj = True
+obj_params = True
+background = False
