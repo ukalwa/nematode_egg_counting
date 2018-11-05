@@ -74,7 +74,7 @@ def main(dir_path='', file_path='', process_dir=False, search_string=None):
 # Main process starts here
 if __name__ == "__main__":
     usage = '''
-    Usage `python run_script.py [<Command> <Value>]`
+    Usage `python run.py [<Command> <Value>]`
 
         Command     Value                [Description]
         -uf                              Navigate through GUI to get file

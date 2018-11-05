@@ -117,6 +117,9 @@ def get_obj_color(frame):
     for processing future frames.
 
     :param frame: sub image as 3-d numpy array
+    :type frame: np.ndarray
+    :return: HSV low and high range values
+    :rtype: List[np.ndarray, np.ndarray]
     """
     global hsv
     cv2.namedWindow('Original', cv2.WINDOW_NORMAL)
@@ -168,12 +171,13 @@ def get_obj_color(frame):
 
 def select_obj_frame(filename):
     """
-    This method reads the image and displays user each block. Then user choses\
-    a block with higher objects of interest and enters that block number to\
+    This method reads the image and displays user each block. Then user choses
+    a block with higher objects of interest and enters that block number to
     use the interactive segmentation method.
 
-    :param filename:
-    :return:
+    :param filename: full filepath of the image
+    :type filename: str
+    :return: None
     """
     global img_list, base_mean, break_flag
 
