@@ -176,7 +176,7 @@ def process_image(file_path):
                         bbox_inches='tight', dpi=dpi)
             
         block_count += 1
-    plt.close(fig)
+    if save_fig: plt.close(fig)
     end_time = time.time()
     count_list.append(("Total Eggs counted {} in {} seconds".
                        format(total_egg_count, round(
