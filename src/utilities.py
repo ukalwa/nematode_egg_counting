@@ -11,10 +11,10 @@ from __future__ import generators, division
 import os
 import sys
 
-if sys.version_info[0] < 3:
-    import ConfigParser as configparser
-else:
+try:
     import configparser
+except ImportError:
+    import ConfigParser as configparser
 
 # third-party imports
 import cv2

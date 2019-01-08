@@ -30,6 +30,7 @@ from src.process_block import process_block
 from src.utilities import split_image, get_mean
 from src.utilities import read_image, get_obj_box
 from src.utilities import get_bkground_class
+from src.utilities import create_mask
 
 plt.style.use('ggplot')
 
@@ -73,18 +74,16 @@ def process_image(file_path):
     dpi = config.getint("fig", "dpi")
     figsize = [int(item) for item in config.get("fig", "size").split(",")]
     ext = config.get("fig", "ext")
-    create_plots = config.getboolean("fig", "create")
-    show_plots = config.getboolean("fig", "show")
-    if not show_plots:
-        plt.ioff()
+    save_fig = config.getboolean("fig", "save")
 
     # Save options
-    save_images = config.getboolean("save", "fig")
     save_params = config.getboolean("save", "obj_params")
     save_obj = config.getboolean("save", "obj")
     save_counts = config.getboolean("save", "counts")
     save_bkground = config.getboolean("save", "background")
     box_size = [int(item) for item in config.get("box", "size").split(",")]
+    # Added to save binary blocks for machine learning
+    save_train = config.getboolean("save", "train")
 
     total_egg_count = 0  # Total Egg count initialization to 0
     block_count = 0  # To store current block
@@ -111,6 +110,10 @@ def process_image(file_path):
 
     print("Processing all image blocks")
     progress_bar = tqdm(img_list)
+
+    if save_fig:
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
+
     for block_image in progress_bar:
         progress_bar.set_description("Egg Count: {}".format(total_egg_count))
         b_img = block_image.copy()
@@ -121,8 +124,28 @@ def process_image(file_path):
         processed_image = result['img']
         egg_list.extend(result['obj_params'])
         contours = result["contours"]
+        mask = result["mask"]
 
         count_list.append("{}, {}, {}".format(layer, block_count, count))
+
+        # Create binary image from the contours
+        if save_train:
+            # if len(result["contours"]) > 0:
+            binary_image = create_mask(mask.shape, result["contours"])
+            save_dir = os.path.join(base_file, "train")
+            if not os.path.isdir(save_dir):
+                os.makedirs(save_dir)
+            # Save mask
+            cv2.imwrite(
+                    os.path.join(save_dir,
+                                "{}_{:04d}_mask{}".format(file_name,
+                                block_count, ext)),
+                    binary_image)
+            # Save original
+            cv2.imwrite(
+                    os.path.join(save_dir,
+                                "{}_{:04d}{}".format(file_name, block_count, ext)),
+                    block_image.copy())
 
         # Save objects
         if save_obj:
@@ -135,8 +158,7 @@ def process_image(file_path):
                     block_image, box_lst, fixed_size=box_size))
 
         total_egg_count += count
-        if create_plots:
-            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
+        if save_fig:
             ax1.imshow(cv2.cvtColor(block_image, cv2.COLOR_BGR2RGB))
             ax1.set_title('Original Image')
             # remove xticks and yticks
@@ -148,20 +170,13 @@ def process_image(file_path):
             ax2.set_yticks([])
             ax2.set_xticks([])
 
-            if save_images:
-                if not os.path.isdir(base_file):
-                    os.mkdir(base_file)
-                plt.savefig(posixpath.join(base_file, str(block_count) + ext),
-                            bbox_inches='tight', dpi=dpi)
-            try:
-                if show_plots:
-                    plt.show()
-                    plt.waitforbuttonpress(timeout=-1)
-            except tk.TclError:
-                print("Program exited")
-                break
-            plt.close(fig)
+            if not os.path.isdir(base_file):
+                os.mkdir(base_file)
+            plt.savefig(posixpath.join(base_file, str(block_count) + ext),
+                        bbox_inches='tight', dpi=dpi)
+            
         block_count += 1
+    plt.close(fig)
     end_time = time.time()
     count_list.append(("Total Eggs counted {} in {} seconds".
                        format(total_egg_count, round(

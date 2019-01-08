@@ -2,7 +2,7 @@
 """
 Module containing methods to processes a single block
 
-Created on Tue Apr 25 15:06:59 2017
+saved on Tue Apr 25 15:06:59 2017
 
 @author: ukalwa
 """
@@ -11,10 +11,10 @@ from __future__ import division, generators
 import os
 import sys
 
-if sys.version_info[0] < 3:
-    import ConfigParser as configparser
-else:
+try:
     import configparser
+except ImportError:
+    import ConfigParser as configparser
 
 # third-party imports
 import cv2
@@ -22,7 +22,6 @@ import numpy as np
 
 # Custom module imports
 from src.utilities import get_obj_params, draw_box
-from src.utilities import create_mask
 
 
 def process_block(block, base_mean, file_name="",
@@ -54,8 +53,7 @@ def process_block(block, base_mean, file_name="",
         file_name = os.path.basename(file_name)
 
     mean_thresh = config.getfloat('DEFAULT', 'mean_thresh')
-    # Added to save binary blocks for machine learning
-    save_train = config.getboolean("save", "train")
+
 
     # box params
     color = tuple([int(item) for item in config.get("box", "color").
@@ -63,7 +61,7 @@ def process_block(block, base_mean, file_name="",
     thickness = config.getint("box", "thickness")
 
     # fig params
-    create = config.getboolean("fig", "create")
+    save = config.getboolean("fig", "save")
 
     # To detect top and interface
     if base_mean[1] < mean_thresh:
@@ -88,28 +86,9 @@ def process_block(block, base_mean, file_name="",
     # Detect objects with the criteria specified in config file
     result = get_obj_params(mask, cfg_file=config, block=blk_cnt)
 
-    # Create binary image from the contours
-    if save_train:
-        if len(result["contours"]) > 0:
-            binary_image = create_mask(mask.shape, result["contours"])
-            save_dir = config.get("save", "path")
-            if save_dir is not None:
-                if not os.path.exists(save_dir): os.mkdir(save_dir)
-            # Save mask
-            cv2.imwrite(
-                    os.path.join(save_dir,
-                                "{}_{:04d}_mask.tif".format(file_name,
-                                blk_cnt)),
-                    binary_image)
-            # Save original
-            cv2.imwrite(
-                    os.path.join(save_dir,
-                                "{}_{:04d}.tif".format(file_name, blk_cnt)),
-                    block.copy())
-
     # Overlay the block with detected contours
-    if create:
+    if save:
         draw_box(block, result["contours"], color=color, thickness=thickness)
 
-    return {'img': block, 'count': result["count"],
+    return {'img': block, 'count': result["count"], 'mask': mask,
             "obj_params": result["obj_params"], "contours": result["contours"]}
