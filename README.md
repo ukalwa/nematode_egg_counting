@@ -10,7 +10,7 @@ gets the total count of them.
 - Then you can run the following commands install required packages
 
   ```bash
-  conda install -y opencv matplotlib numpy tqdm pillow -c conda-forge
+  conda env create -f environment.yaml
   ```
 
 *It is compatible with both Python 2.7 and Python 3.5, however installing Python 3.5 or greater is recommended.*
@@ -24,6 +24,8 @@ gets the total count of them.
 ```bash
 git clone https://github.com/ukalwa/nematode_egg_counting
 cd nematode_egg_counting
+# Activate the conda environment
+activate egg_counting
 ```
 
 *Configuration file `src/config.ini` contains all the settings for blob

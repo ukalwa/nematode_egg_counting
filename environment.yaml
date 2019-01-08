@@ -1,0 +1,10 @@
+name: egg_counting
+channels:
+    - conda-forge
+dependencies:
+    - python=3.5
+    - opencv=3.4
+    - matplotlib=2.2
+    - numpy=1.14
+    - pillow=5.1
+    - tqdm

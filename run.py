@@ -15,10 +15,10 @@ import sys
 import argparse
 import os
 
-if sys.version_info[0] < 3:
+try:
     from Tkinter import Tk
     import tkFileDialog as filedialog
-else:
+except ImportError:
     from tkinter import Tk
     from tkinter import filedialog
 
@@ -74,6 +74,9 @@ def main(dir_path='', file_path='', process_dir=False, search_string=None):
 # Main process starts here
 if __name__ == "__main__":
     usage = '''
+    If conda environment is not activated, activate it by
+    `activate egg_counting`
+
     Usage `python run.py [<Command> <Value>]`
 
         Command     Value                [Description]
