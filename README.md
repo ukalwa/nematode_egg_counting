@@ -7,14 +7,14 @@ gets the total count of them.
 
 - Download & Install [Python] using [Anaconda] or [Miniconda] (**Recommended**)
 
-- Clone this repository and change directory
+- Open a terminal or command prompt and clone this repository. Then cd into the directory
 
   ```bash
   git clone https://github.com/ukalwa/nematode_egg_counting
   cd nematode_egg_counting
   ```
 
-- Then you can run the following commands install required packages
+- Now, you can run the following commands to install required packages in an isolated conda environment
 
   ```bash
   conda env create -f environment.yaml
@@ -28,13 +28,9 @@ gets the total count of them.
 
 *Configuration file `src/config.ini` contains all the settings for blob identification, fig sizes and so on. Before running the script, update it accordingly.*
 
-- Before running the file change to the cloned directory and activate the conda environment
+- Before running the application, cd to the cloned directory and activate the conda environment by running `activate egg_counting`
 
-  ```bash
-  cd nematode_egg_counting
-  # Activate the conda environment
-  activate egg_counting
-  ```
+*Paths specified as command line arguments (`file_path`, `dir_path`) below should be enclosed in quotes(`''` or `""`)*
 
 - To process a single file with its known absolute file path
 
