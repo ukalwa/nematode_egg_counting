@@ -23,8 +23,13 @@ except ImportError:
     from tkinter import filedialog
 
 # Custom module imports
-from src.process_image import process_image
-from src.utilities import validate_file
+try:
+    from src.process_image import process_image
+    from src.utilities import validate_file
+except ImportError:
+    print("Have you activated the conda environment " +
+    "by running `activate egg_counting`?")
+    sys.exit(1)
 
 root = Tk()
 root.withdraw()

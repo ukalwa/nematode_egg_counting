@@ -7,6 +7,13 @@ gets the total count of them.
 
 - Download & Install [Python] using [Anaconda] or [Miniconda] (**Recommended**)
 
+- Clone this repository and change directory
+
+  ```bash
+  git clone https://github.com/ukalwa/nematode_egg_counting
+  cd nematode_egg_counting
+  ```
+
 - Then you can run the following commands install required packages
 
   ```bash
@@ -19,31 +26,14 @@ gets the total count of them.
 
 ## Usage
 
-- Clone this repository and change directory
+*Configuration file `src/config.ini` contains all the settings for blob identification, fig sizes and so on. Before running the script, update it accordingly.*
 
-```bash
-git clone https://github.com/ukalwa/nematode_egg_counting
-cd nematode_egg_counting
-# Activate the conda environment
-activate egg_counting
-```
-
-*Configuration file `src/config.ini` contains all the settings for blob
-identification, fig sizes and so on. Before running the script, update
-accordingly.*
-
-- To process a single file using file dialog GUI
+- Before running the file change to the cloned directory and activate the conda environment
 
   ```bash
-  python run.py
-  (or)
-  python run.py -uf
-  ```
-
-- To process a directory full of image using file dialog GUI
-
-  ```bash
-  python run.py -ud
+  cd nematode_egg_counting
+  # Activate the conda environment
+  activate egg_counting
   ```
 
 - To process a single file with its known absolute file path
@@ -62,6 +52,20 @@ accordingly.*
 
   ```bash
   python run.py -d <dir_path> -p <pattern string>
+  ```
+
+- To process a single file using file dialog GUI
+
+  ```bash
+  python run.py
+  (or)
+  python run.py -uf
+  ```
+
+- To process a directory full of image using file dialog GUI
+
+  ```bash
+  python run.py -ud
   ```
 
 ## Steps involved
