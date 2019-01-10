@@ -84,6 +84,8 @@ def process_image(file_path):
     box_size = [int(item) for item in config.get("box", "size").split(",")]
     # Added to save binary blocks for machine learning
     save_train = config.getboolean("save", "train")
+    # Save images with atleast one egg
+    save_important = config.getboolean("save", "important") 
 
     total_egg_count = 0  # Total Egg count initialization to 0
     block_count = 0  # To store current block
@@ -130,22 +132,23 @@ def process_image(file_path):
 
         # Create binary image from the contours
         if save_train:
-            # if len(result["contours"]) > 0:
-            binary_image = create_mask(mask.shape, result["contours"])
             save_dir = os.path.join(base_file, "train")
             if not os.path.isdir(save_dir):
                 os.makedirs(save_dir)
-            # Save mask
-            cv2.imwrite(
-                    os.path.join(save_dir,
-                                "{}_{:04d}_mask{}".format(file_name,
-                                block_count, ext)),
-                    binary_image)
-            # Save original
-            cv2.imwrite(
-                    os.path.join(save_dir,
-                                "{}_{:04d}{}".format(file_name, block_count, ext)),
-                    block_image.copy())
+            if not save_important  or (save_important and len(result["contours"]) > 0):
+                binary_image = create_mask(mask.shape, result["contours"])
+                
+                # Save mask
+                cv2.imwrite(
+                        os.path.join(save_dir,
+                                    "{}_{:04d}_mask{}".format(file_name,
+                                    block_count, ext)),
+                        binary_image)
+                # Save original
+                cv2.imwrite(
+                        os.path.join(save_dir,
+                                    "{}_{:04d}{}".format(file_name, block_count, ext)),
+                        block_image.copy())
 
         # Save objects
         if save_obj:
